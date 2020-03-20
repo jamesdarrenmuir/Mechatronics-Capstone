@@ -1,5 +1,0 @@
-%% setup
-clear all; close all; clc;
-%% system parameters
-J_m = 0; % rotational inertia of the motor (kg-m^2)
-J_p1 = 0; % rotational inertia of the 

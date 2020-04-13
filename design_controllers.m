@@ -7,6 +7,7 @@ r_p = 4e-2; % radius of the pulleys (m)
 K = 300e3; % spring constant (N/m)
 K_vi = 0.41; % amplifier constant (A/V)
 K_t = 0.11; % motor torque constant (N-m/A)
+maximum_output_voltage = 10; % maximum output voltage of myRIO (V)
 %% set up base transfer function
 s = tf("s");
 %% design inner loop controller

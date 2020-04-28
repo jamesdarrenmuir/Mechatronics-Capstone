@@ -5,7 +5,7 @@ maximum_motor_output_torque = maximum_output_voltage * K_vi * K_t
 % output response
 figure('NumberTitle', 'off', 'Name', 'Output');
 closed_loop = feedback(series(controller, plant), 1);
-opt = stepDataOptions('StepAmplitude', 0.9 * maximum_motor_output_torque);
+opt = stepDataOptions('StepAmplitude', pi/4);
 h = stepplot(closed_loop, opt);
 title("Output vs Time")
 ylabel("Position (rad)")

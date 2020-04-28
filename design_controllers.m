@@ -32,4 +32,5 @@ maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 s = tf("s");
 %% design controller
 plant = K_vi * K_t * (R_g^2*(J_2*s^2+R_2^2*K))/(R_1^2*J_2*K*s+J_1*s*R_g^2*(J_2*s^2+R_2^2*K));
-controller = pidtune(plant, "PIDF", 100);
+opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
+controller = pidtune(plant, "PIDF", 80, opt);

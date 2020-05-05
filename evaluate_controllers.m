@@ -1,7 +1,7 @@
 %% setup
 close all; clc; % don't clear all, we need the variables from the design_controllers script
 %% evaluate controller
-maximum_motor_output_torque = maximum_output_voltage * K_vi * K_t
+maximum_motor_output_torque = maximum_output_voltage * Kvi * Kt
 % output response
 figure('NumberTitle', 'off', 'Name', 'Output');
 closed_loop = feedback(series(controller, plant), 1);

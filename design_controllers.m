@@ -6,10 +6,7 @@ Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
 Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley furthest from the motor
-%TODO: The value of JL seems large. Maybe it should be reduced.
-JL = 1.072e4; % (kg-m^2) moment of inertia of the load
-% TODO: revert this
-%JL = 2; % test value
+JL = 1.072e-4; % (kg-m^2) moment of inertia of the load
 
 R1 = 2e-2; % (m) radius of the pulley closest to the motor
 R2 = R1; % (m) radius of the pulley furthest from the motor
@@ -18,8 +15,6 @@ Rg = 16; % gearbox ratio, 16:1 speed reduction
 
 %TODO: update these values based on the selected springs
 K1 = 18913; % (N/m) spring constant of upper spring
-%TODO: revert this
-%K1 = 6829; % test value
 K2 = K1; % (N/m) spring constant of lower spring
 
 %TODO: update this with values from the real amplifier
@@ -36,5 +31,5 @@ J2 = Jp2 + JL;
 plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg^2*s*(J2*s^2+K*R2^2)))
 plant = minreal(plant)
 %% design controller
-opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
-controller = pidtune(plant, "PDF", .004, opt)
+opt = pidtuneOptions("PhaseMargin", 70); % Default: 60 deg
+controller = pidtune(plant, "PDF", 5, opt)

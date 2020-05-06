@@ -1,5 +1,5 @@
 %% setup
-close all; clc; % don't clear all, we need the variables from the design_controllers script
+close all; % don't clear all, we need the variables from the design_controllers script
 %% evaluate controller
 maximum_motor_output_torque = maximum_output_voltage * Kvi * Kt
 % output response

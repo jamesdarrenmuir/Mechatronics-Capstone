@@ -2,38 +2,39 @@
 clear all; close all; clc;
 %% mechanical system parameters
 %TODO: update these values with values from the CAD model
-Jm = 3.8e-4; % (kg-m^2) moment of inertia of the motor
-Jp1 = 3.8e-4; % (kg-m^2) moment of inertia of the pulley closest to the motor
-Jp2 = 3.8e-4; % (kg-m^2) moment of inertia of the pulley furthest from the motor
-Jl = 3.8e-4; % (kg-m^2) moment of inertia of the load
+Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
+Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
+Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
+Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley furthest from the motor
+%TODO: The value of JL seems large. Maybe it should be reduced.
+JL = 1.072e4; % (kg-m^2) moment of inertia of the load
+% TODO: revert this
+%JL = 2; % test value
 
-R1 = .06; % (m) radius of the pulley closest to the motor
-R2 = .06; % (m) radius of the pulley furthest from the motor
+R1 = 2e-2; % (m) radius of the pulley closest to the motor
+R2 = R1; % (m) radius of the pulley furthest from the motor
 
-%TODO: update this to the 16:1 speed reduction
-Rg = 16; % gearbox ratio
+Rg = 16; % gearbox ratio, 16:1 speed reduction
 
 %TODO: update these values based on the selected springs
-K1 = 30; % (N/m) spring constant of upper spring
-K2 = 30; % (N/m) spring constant of lower spring
+K1 = 18913; % (N/m) spring constant of upper spring
+%TODO: revert this
+%K1 = 6829; % test value
+K2 = K1; % (N/m) spring constant of lower spring
 
 %TODO: update this with values from the real amplifier
 Kvi = 0.41; % (A/V) amplifier constant
 %TODO: update this value with the value from the selected motor data sheet
-Kt = 0.11; % (N-m/A) motor torque constant
+Kt = 0.0214; % (N-m/A) motor torque constant
 %TODO: update this if we use a different device
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 %% plant transfer function
 s = tf("s");
 K = K1 + K2;
-J4 = Jp2 + Jl;
-Z1 = 1/(Jm*s);
-Z2 =1/(Jp2*s);
-Z3 = s/K;
-Z4 = 1/(J4*s);
-Zp2 = 1/(Jp2*s);
-Zl = 1/(Jl*s);
-plant = Kvi * Kt * (R1*R2*Z1*Z2*Zp2)/((Z1*R2^2*Z2+(Z1+Rg^2*Z2)*(Z3+R2^2*Z4))*(Zp2+Zl));
+J1 = Jm + Jg;
+J2 = Jp2 + JL;
+plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg^2*s*(J2*s^2+K*R2^2)))
+plant = minreal(plant)
 %% design controller
 opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
-controller = pidtune(plant, "PIDF") %, 80, opt);
+controller = pidtune(plant, "PDF", .004, opt)

@@ -23,13 +23,23 @@ Kvi = 0.41; % (A/V) amplifier constant
 Kt = 0.0214; % (N-m/A) motor torque constant
 %TODO: update this if we use a different device
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
-%% plant transfer function
+%% single loop controller
 s = tf("s");
 K = K1 + K2;
 J1 = Jm + Jg;
 J2 = Jp2 + JL;
-plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg^2*s*(J2*s^2+K*R2^2)))
-plant = minreal(plant)
-%% design controller
+plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg^2*s*(J2*s^2+K*R2^2)));
+plant = minreal(plant);
+
 opt = pidtuneOptions("PhaseMargin", 70); % Default: 60 deg
-controller = pidtune(plant, "PDF", 5, opt)
+single_loop_controller = pidtune(plant, "PDF", 5, opt);
+%% double loop controllers
+%% inner loop controller
+KKSEA = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
+KKSEA = minreal(KKSEA);
+opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
+inner_loop_controller = pidtune(KKSEA, "PIDF", .01, opt);
+%% outer loop controller
+ZL = 1/(J2*s^2);
+opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
+outer_loop_controller = pidtune(ZL, "PDF", 30, opt);

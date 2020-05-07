@@ -24,7 +24,7 @@ ylabel("Voltage (V)")
 figure('NumberTitle', 'off', 'Name', 'Inner Loop Output');
 closed_loop = feedback(series(inner_loop_controller, KKSEA), 1);
 maximum_motor_output_torque = maximum_output_voltage * Kvi * Kt;
-opt = stepDataOptions('StepAmplitude', maximum_motor_output_torque/2);
+opt = stepDataOptions('StepAmplitude', maximum_output_torque);
 h = stepplot(closed_loop, opt);
 title("Output vs Time")
 ylabel("Torque (N-m)")

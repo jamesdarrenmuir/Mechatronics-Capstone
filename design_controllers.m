@@ -22,6 +22,7 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 Kt = 0.0214; % (N-m/A) motor torque constant
 %TODO: update this if we use a different device
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
+maximum_output_torque = 0.5; % (N-m) maximum target output torque
 %% single loop controller
 s = tf("s");
 K = K1 + K2;

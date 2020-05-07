@@ -1,7 +1,6 @@
 %% setup
 clear all; close all; clc;
 %% mechanical system parameters
-%TODO: update these values with values from the CAD model
 Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
@@ -18,8 +17,7 @@ K1 = 18913; % (N/m) spring constant of upper spring
 K2 = K1; % (N/m) spring constant of lower spring
 
 %TODO: update this with values from the real amplifier
-Kvi = 0.41; % (A/V) amplifier constant
-%TODO: update this value with the value from the selected motor data sheet
+Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 Kt = 0.0214; % (N-m/A) motor torque constant
 %TODO: update this if we use a different device
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
@@ -37,9 +35,11 @@ single_loop_controller = pidtune(plant, "PDF", 5, opt);
 %% inner loop controller
 KKSEA = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
 KKSEA = minreal(KKSEA);
+
 opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
 inner_loop_controller = pidtune(KKSEA, "PIDF", .01, opt);
 %% outer loop controller
 ZL = 1/(J2*s^2);
+
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 outer_loop_controller = pidtune(ZL, "PDF", 30, opt);

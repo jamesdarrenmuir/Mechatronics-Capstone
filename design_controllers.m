@@ -1,11 +1,12 @@
 %% setup
 clear all; close all; clc;
 %% mechanical system parameters
+%TODO: update these with the final values from the CAD model
 Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
 Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley furthest from the motor
-JL = 1.072e-4; % (kg-m^2) moment of inertia of the load
+JL = 5.1e-5; % (kg-m^2) moment of inertia of the load
 
 R1 = 2e-2; % (m) radius of the pulley closest to the motor
 R2 = R1; % (m) radius of the pulley furthest from the motor
@@ -30,16 +31,16 @@ plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg
 plant = minreal(plant);
 
 opt = pidtuneOptions("PhaseMargin", 70); % Default: 60 deg
-single_loop_controller = pidtune(plant, "PDF", 5, opt);
+single_loop_controller = pidtune(plant, "PDF", 10, opt);
 %% double loop controllers
 %% inner loop controller
 KKSEA = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
 KKSEA = minreal(KKSEA);
 
 opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
-inner_loop_controller = pidtune(KKSEA, "PIDF", .01, opt);
+inner_loop_controller = pidtune(KKSEA, "PIDF", .02, opt);
 %% outer loop controller
 ZL = 1/(J2*s^2);
 
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-outer_loop_controller = pidtune(ZL, "PDF", 30, opt);
+outer_loop_controller = pidtune(ZL, "PDF", 45, opt);

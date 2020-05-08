@@ -14,7 +14,7 @@ R2 = R1; % (m) radius of the pulley furthest from the motor
 Rg = 16; % gearbox ratio, 16:1 speed reduction
 
 %TODO: update these values based on the selected springs
-K1 = 18913; % (N/m) spring constant of upper spring
+K1 = 1646; % (N/m) spring constant of upper spring
 K2 = K1; % (N/m) spring constant of lower spring
 
 %TODO: update this with values from the real amplifier

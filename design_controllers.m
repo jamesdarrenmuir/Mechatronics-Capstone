@@ -1,47 +1,113 @@
 %% setup
-clear all; close all; clc;
+% clear all; TODO: uncomment this
+close all; clc;
 %% mechanical system parameters
+%TODO: uncomment system parameters
+maximum_continuous_output_torque = 0.5; % (N-m) maximum target output torque
+
 %TODO: update these with the final values from the CAD model
 Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
 Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley furthest from the motor
-JL = 5.1e-5; % (kg-m^2) moment of inertia of the load
 
-R1 = 2e-2; % (m) radius of the pulley closest to the motor
+% derive load
+
+% JL = .002; % (kg-m^2) moment of inertia of the load
+JL = J;
+
+% R1 = 2e-2; % (m) radius of the pulley closest to the motor
+R1 = r;
 R2 = R1; % (m) radius of the pulley furthest from the motor
 
-Rg = 16; % gearbox ratio, 16:1 speed reduction
+% Rg = 16; % gearbox ratio, 16:1 speed reduction
 
 %TODO: update these values based on the selected springs
-K1 = 18913; % (N/m) spring constant of upper spring
-K2 = K1; % (N/m) spring constant of lower spring
+% K1 = 1e8; % (N/m) spring constant of upper spring
+% K2 = K1; % (N/m) spring constant of lower spring
 
 %TODO: update this with values from the real amplifier
-Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
-Kt = 0.0214; % (N-m/A) motor torque constant
+% Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
+% Kt = 0.0214; % (N-m/A) motor torque constant
 %TODO: update this if we use a different device
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
-maximum_output_torque = 0.5; % (N-m) maximum target output torque
 %% single loop controller
 s = tf("s");
 K = K1 + K2;
 J1 = Jm + Jg;
 J2 = Jp2 + JL;
-plant = Kvi * Kt * (K*R1*R2^2*Rg)/(R2*s*(K*R1^2*J2*s+Jp1*s*(J2*s^2+K*R2^2)+J1*Rg^2*s*(J2*s^2+K*R2^2)));
-plant = minreal(plant);
-
-opt = pidtuneOptions("PhaseMargin", 70); % Default: 60 deg
-single_loop_controller = pidtune(plant, "PDF", 10, opt);
-%% double loop controllers
-%% inner loop controller
-KKSEA = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
-KKSEA = minreal(KKSEA);
-
-opt = pidtuneOptions("PhaseMargin", 75); % Default: 60 deg
-inner_loop_controller = pidtune(KKSEA, "PIDF", .02, opt);
-%% outer loop controller
-ZL = 1/(J2*s^2);
+single_loop_plant = Kvi * Kt * K*R1*R2*Rg/(J2*(Rg^2*J1+Jp1)*s^4+K*(Rg^2*R2^2*J1+Jp1*R2^2+J2*R1^2)*s^2);
+single_loop_plant = minreal(single_loop_plant);
 
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-outer_loop_controller = pidtune(ZL, "PDF", 45, opt);
+single_loop_controller = pidtune(single_loop_plant, "PDF", 4, opt);
+
+% evaluate single loop controller
+% output response
+figure('NumberTitle', 'off', 'Name', 'Single Loop Output');
+closed_loop = feedback(series(single_loop_controller, single_loop_plant), 1);
+opt = stepDataOptions('StepAmplitude', pi/4); % 45 deg rotation step
+h = stepplot(closed_loop, opt);
+title("Output vs Time")
+ylabel("Position (rad)")
+h.showCharacteristic('SettlingTime')
+h.showCharacteristic('PeakResponse')
+single_loop_info = stepinfo(closed_loop)
+single_loop_bandwidth = bandwidth(closed_loop)
+% effort response
+figure('NumberTitle', 'off', 'Name', 'Single Loop Effort');
+controller_effort_transfer_function = feedback(tf(single_loop_controller), single_loop_plant);
+step(controller_effort_transfer_function, opt)
+title("Effort vs Time")
+ylabel("Voltage (V)")
+%% double loop controllers
+%% inner loop controller
+inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
+inner_loop_plant = minreal(inner_loop_plant);
+
+opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
+inner_loop_controller = pidtune(inner_loop_plant, "PIDF", 75, opt);
+
+% evaluate inner loop controller
+% output response
+figure('NumberTitle', 'off', 'Name', 'Inner Loop Output');
+closed_loop = feedback(series(inner_loop_controller, inner_loop_plant), 1);
+maximum_motor_output_torque = maximum_output_voltage * Kvi * Kt;
+opt = stepDataOptions('StepAmplitude', maximum_continuous_output_torque);
+h = stepplot(closed_loop, opt);
+title("Output vs Time")
+ylabel("Torque (N-m)")
+h.showCharacteristic('SettlingTime')
+h.showCharacteristic('PeakResponse')
+inner_loop_info = stepinfo(closed_loop)
+inner_loop_bandwidth = bandwidth(closed_loop)
+% effort response
+figure('NumberTitle', 'off', 'Name', 'Inner Loop Effort');
+controller_effort_transfer_function = feedback(tf(inner_loop_controller), inner_loop_plant);
+step(controller_effort_transfer_function, opt)
+title("Effort vs Time")
+ylabel("Voltage (V)")
+%% outer loop controller
+outer_loop_plant = 1/(J2*s^2);
+
+opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
+outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
+
+% evaluate outer loop controller
+% output response
+figure('NumberTitle', 'off', 'Name', 'Outer Loop Output');
+closed_loop = feedback(series(outer_loop_controller, outer_loop_plant), 1);
+opt = stepDataOptions('StepAmplitude', pi/4); % 45 deg rotation step
+h = stepplot(closed_loop, opt);
+title("Output vs Time")
+ylabel("Position (rad)")
+h.showCharacteristic('SettlingTime')
+h.showCharacteristic('PeakResponse')
+outer_loop_info = stepinfo(closed_loop)
+outer_loop_bandwidth = bandwidth(closed_loop)
+% effort response
+figure('NumberTitle', 'off', 'Name', 'Outer Loop Effort');
+controller_effort_transfer_function = feedback(tf(outer_loop_controller), outer_loop_plant);
+step(controller_effort_transfer_function, opt)
+title("Effort vs Time")
+ylabel("Torque (N-m)")

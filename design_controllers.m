@@ -33,7 +33,7 @@ single_loop_plant = Kvi * Kt * K*R1*R2*Rg/(J2*(Rg^2*J1+Jp1)*s^4+K*(Rg^2*R2^2*J1+
 single_loop_plant = minreal(single_loop_plant);
 
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-single_loop_controller = pidtune(single_loop_plant, "PDF", 4, opt);
+single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 
 % evaluate single loop controller
 % output response
@@ -41,6 +41,7 @@ figure('NumberTitle', 'off', 'Name', 'Single Loop Output');
 closed_loop = feedback(series(single_loop_controller, single_loop_plant), 1);
 opt = stepDataOptions('StepAmplitude', pi/4); % 45 deg rotation step
 h = stepplot(closed_loop, opt);
+xlim([0 100])
 title("Output vs Time")
 ylabel("Position (rad)")
 h.showCharacteristic('SettlingTime')
@@ -59,7 +60,7 @@ inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
 inner_loop_plant = minreal(inner_loop_plant);
 
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-inner_loop_controller = pidtune(inner_loop_plant, "PIDF", 150, opt);
+inner_loop_controller = pidtune(inner_loop_plant, "PIDF", 500, opt);
 
 % evaluate inner loop controller
 % output response

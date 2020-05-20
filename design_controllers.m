@@ -59,8 +59,8 @@ title("Output vs Time")
 ylabel("Position (rad)")
 h.showCharacteristic('SettlingTime')
 h.showCharacteristic('PeakResponse')
-single_loop_info = stepinfo(closed_loop)
-single_loop_bandwidth = bandwidth(closed_loop)
+% single_loop_info = stepinfo(closed_loop)
+% single_loop_bandwidth = bandwidth(closed_loop)
 
 % effort response
 figure('NumberTitle', 'off', 'Name', 'Single Loop Effort');
@@ -69,14 +69,45 @@ step(controller_effort_transfer_function, opt)
 title("Effort vs Time")
 ylabel("Voltage (V)")
 %% double loop controllers
+% the inner loop is nested inside the outer loop
 %% inner loop controller
 % set up plant
 inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
 inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
-opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-inner_loop_controller = pidtune(inner_loop_plant, "PIDF", 500, opt);
+% 10% OS -> zeta = 0.6
+% zeta = .6; % Garbini's recommendation
+zeta = .33;
+% Ts = 0.03; % (s) Garbini's recommendation
+Ts = 0.08;
+wn = 4 / (Ts * zeta); % (rad/s)
+
+% z = 80; % Garbini's recommendation
+z = 25;
+
+tp = -zeta*wn + wn*sqrt(1-zeta^2)*1j; % target pole
+ps = pole(inner_loop_plant); % open loop poles
+ang = angle(tp + z) - angle(tp - ps(1)) ...
+    - angle(tp - ps(2)) - (2*-1+1)*pi; % angle from tp to p
+p = imag(tp)/atan(ang) - real(tp); % controller pole
+[~,Kp] = zero(inner_loop_plant); % plant gain
+Kc = abs(tp-ps(1))*abs(tp-ps(2))*abs(tp+p)/abs(tp+z)/Kp; % controller gain
+inner_loop_controller = Kc*(s+z)/(s+p);
+
+% visualize controller design
+figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller Target Vs Result');
+open_loop_tf = series(inner_loop_controller, inner_loop_plant);
+rlocus(open_loop_tf)
+hold on
+xline(-zeta*wn, 'k:')
+sgrid(zeta,0)
+h2 = plot([tp conj(tp)], 'kx', 'MarkerSize',12);
+r = rlocus(open_loop_tf, 1);
+h1 = plot(r,'gs',    'MarkerEdgeColor','k',...
+                    'MarkerFaceColor','g',...
+                    'MarkerSize',9);
+legend([h1 h2] , ["closed loop poles" "target poles"])
 
 % evaluate inner loop controller
 % output response
@@ -85,12 +116,16 @@ closed_loop = feedback(series(inner_loop_controller, inner_loop_plant), 1);
 maximum_motor_output_torque = maximum_output_voltage * Kvi * Kt;
 opt = stepDataOptions('StepAmplitude', MCOT);
 h = stepplot(closed_loop, opt);
+hold on
+y = yline(MCOT);
+ylim([-1.1*MCOT 1.1*MCOT])
+legend(y, 'Target')
 title("Output vs Time")
 ylabel("Torque (N-m)")
 h.showCharacteristic('SettlingTime')
 h.showCharacteristic('PeakResponse')
-inner_loop_info = stepinfo(closed_loop)
-inner_loop_bandwidth = bandwidth(closed_loop)
+% inner_loop_info = stepinfo(closed_loop)
+% inner_loop_bandwidth = bandwidth(closed_loop)
 
 % effort response
 figure('NumberTitle', 'off', 'Name', 'Inner Loop Effort');
@@ -100,9 +135,11 @@ title("Effort vs Time")
 ylabel("Voltage (V)")
 %% outer loop controller
 % set up plant
-outer_loop_plant = 1/(J2*s^2);
+Z2 = 1/(J2*s^2);
+outer_loop_plant = series(feedback(series(inner_loop_controller, inner_loop_plant), 1), Z2);
 
 % design controller
+% output torque < 0.5 N-m
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
 
@@ -116,8 +153,8 @@ title("Output vs Time")
 ylabel("Position (rad)")
 h.showCharacteristic('SettlingTime')
 h.showCharacteristic('PeakResponse')
-outer_loop_info = stepinfo(closed_loop)
-outer_loop_bandwidth = bandwidth(closed_loop)
+% outer_loop_info = stepinfo(closed_loop)
+% outer_loop_bandwidth = bandwidth(closed_loop)
 
 % effort response
 figure('NumberTitle', 'off', 'Name', 'Outer Loop Effort');

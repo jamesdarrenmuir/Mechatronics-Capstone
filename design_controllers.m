@@ -77,14 +77,14 @@ inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
 % 10% OS -> zeta = 0.6
-% zeta = .6; % Garbini's recommendation
-zeta = .33;
-% Ts = 0.03; % (s) Garbini's recommendation
-Ts = 0.08;
+zeta = .6; % Garbini's recommendation
+% zeta = .33;
+Ts = 0.03; % (s) Garbini's recommendation
+% Ts = 0.08;
 wn = 4 / (Ts * zeta); % (rad/s)
 
-% z = 80; % Garbini's recommendation
-z = 25;
+z = 80; % Garbini's recommendation
+% z = 25;
 
 tp = -zeta*wn + wn*sqrt(1-zeta^2)*1j; % target pole
 ps = pole(inner_loop_plant); % open loop poles

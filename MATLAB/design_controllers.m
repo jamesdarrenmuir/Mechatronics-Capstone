@@ -68,6 +68,15 @@ controller_effort_transfer_function = feedback(tf(single_loop_controller), singl
 step(controller_effort_transfer_function, opt)
 title("Effort vs Time")
 ylabel("Voltage (V)")
+
+% discretize controller
+T = 0.005; %(s)
+dcontroller = c2d(single_loop_controller, T);
+[num, den] = tfdata(dcontroller, 'v');
+[sos, ~] = tf2sos(num, den);
+% save controller as .h file
+fileID = fopen('../C/Single Loop/single_loop_controller.h','w');
+sos2header(fileID, sos, "single_loop_controller", T, Kvi, Kt, "Single loop PDF controller for SEA device")
 %% double loop controllers
 % the inner loop is nested inside the outer loop
 %% inner loop controller
@@ -133,6 +142,15 @@ controller_effort_transfer_function = feedback(tf(inner_loop_controller), inner_
 step(controller_effort_transfer_function, opt)
 title("Effort vs Time")
 ylabel("Voltage (V)")
+
+% discretize controller
+T = 0.005; %(s)
+dcontroller = c2d(inner_loop_controller, T);
+[num, den] = tfdata(dcontroller, 'v');
+[sos, ~] = tf2sos(num, den);
+% save controller as .h file
+fileID = fopen('../C/Double Loop/inner_loop_controller.h','w');
+sos2header(fileID, sos, "inner_loop_controller", T, Kvi, Kt, "Inner loop PDF controller for SEA device")
 %% outer loop controller
 % set up plant
 Z2 = 1/(J2*s^2);
@@ -162,3 +180,14 @@ controller_effort_transfer_function = feedback(tf(outer_loop_controller), outer_
 step(controller_effort_transfer_function, opt)
 title("Effort vs Time")
 ylabel("Torque (N-m)")
+
+% discretize controller
+T = 0.005; %(s)
+dcontroller = c2d(outer_loop_controller, T);
+[num, den] = tfdata(dcontroller, 'v');
+[sos, ~] = tf2sos(num, den);
+% save controller as .h file
+fileID = fopen('../C/Double Loop/outer_loop_controller.h','w');
+sos2header(fileID, sos, "outer_loop_controller", T, Kvi, Kt, "Outer loop PDF controller for SEA device")
+%% close all open files
+fclose('all')

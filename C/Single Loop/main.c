@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2015
+ * Copyright (c) 2015 Prof Garbini
+ * Modified 2020 James Muir
  */
 
-// Lab #8 R&D  NEW CTABLE:  ctable2()
-
-// This is a prototype of a new Lab #8 that illustrates position control, with a sequence of positions.
-//	See Lab #7 for details
+// Based on Lab #8 R&D
 
 #include <stdio.h>
 #include <time.h>
@@ -41,7 +39,7 @@ struct	biquad	{
 	double  x0; double  x1; double  x2;		// input
 	double  y1; double  y2;					// output
 };
-#include "myPIDF.h"
+#include "single_loop_controller.h"
 
 // Prototypes
 double	cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax );

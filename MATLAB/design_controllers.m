@@ -197,4 +197,4 @@ dcontroller = c2d(outer_loop_controller, T);
 fileID = fopen('../C/Double Loop/outer_loop_controller.h','w');
 sos2header(fileID, sos, "outer_loop_controller", T, "Outer loop PDF controller for SEA device")
 %% close all open files
-fclose('all')
+fclose('all');

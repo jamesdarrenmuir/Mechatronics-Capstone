@@ -223,14 +223,16 @@ int main(int argc, char **argv)
 		{"VDAout: mV  ",  0, 0.0     }
     };
 
-    vmax=50.;
-    amax=20.;
-    dwell=3.0;
-    seg mySegs[2]={				// revolutions
+    vmax=10.;
+    amax=10.;
+    dwell=5.0;
+    seg mySegs[4]={				// revolutions
 		{16.000,	vmax,	amax,	dwell},
-		{-16.000,	vmax,	amax,	dwell}
+		{0,	vmax,	amax,	dwell},
+        {-16.000,	vmax,	amax,	dwell},
+		{0,	vmax,	amax,	dwell}
     };
-    nseg = 2;
+    nseg = 4;
 
     /*  registers corresponding to the IRQ channel     */
     irqTimer0.timerWrite = IRQTIMERWRITE;

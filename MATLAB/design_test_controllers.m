@@ -53,7 +53,7 @@ single_loop_plant = minreal(single_loop_plant);
 
 % design controller
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-single_loop_controller = pidtune(single_loop_plant, "PDF", 20, opt);
+single_loop_controller = pidtune(single_loop_plant, "PDF", 5, opt);
 
 % evaluate single loop controller
 % output response

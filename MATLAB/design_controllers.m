@@ -33,6 +33,13 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 
 % myRIO
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
+%% save K values as .h file
+% single loop
+fileID = fopen('../C/Single Loop/Ks.h','w');
+Ks2header(fileID, Kvi, Kt, "K values for SEA device")
+% double loop
+fileID = fopen('../C/Double Loop/Ks.h','w');
+Ks2header(fileID, Kvi, Kt, "K values for SEA device")
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
@@ -76,7 +83,7 @@ dcontroller = c2d(single_loop_controller, T);
 [sos, ~] = tf2sos(num, den);
 % save controller as .h file
 fileID = fopen('../C/Single Loop/single_loop_controller.h','w');
-sos2header(fileID, sos, "single_loop_controller", T, Kvi, Kt, "Single loop PDF controller for SEA device")
+sos2header(fileID, sos, "single_loop_controller", T, "Single loop PDF controller for SEA device")
 %% double loop controllers
 % the inner loop is nested inside the outer loop
 %% inner loop controller
@@ -150,7 +157,7 @@ dcontroller = c2d(inner_loop_controller, T);
 [sos, ~] = tf2sos(num, den);
 % save controller as .h file
 fileID = fopen('../C/Double Loop/inner_loop_controller.h','w');
-sos2header(fileID, sos, "inner_loop_controller", T, Kvi, Kt, "Inner loop PDF controller for SEA device")
+sos2header(fileID, sos, "inner_loop_controller", T, "Inner loop PDF controller for SEA device")
 %% outer loop controller
 % set up plant
 Z2 = 1/(J2*s^2);
@@ -188,6 +195,6 @@ dcontroller = c2d(outer_loop_controller, T);
 [sos, ~] = tf2sos(num, den);
 % save controller as .h file
 fileID = fopen('../C/Double Loop/outer_loop_controller.h','w');
-sos2header(fileID, sos, "outer_loop_controller", T, Kvi, Kt, "Outer loop PDF controller for SEA device")
+sos2header(fileID, sos, "outer_loop_controller", T, "Outer loop PDF controller for SEA device")
 %% close all open files
 fclose('all')

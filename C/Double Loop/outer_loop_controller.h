@@ -1,6 +1,6 @@
 //---Outer loop PDF controller for SEA device
-//---28-May-2020 13:21:45
-    char        headerTime[] = "28-May-2020 13:21:45";
+//---28-May-2020 13:27:55
+    char        headerTime[] = "28-May-2020 13:27:55";
     int         outer_loop_controller_ns = 1;              // number of sections
     uint32_t    timeoutValue = 5000;      // time interval - us; f_s = 200 Hz
     static	struct	biquad outer_loop_controller[]={   // define the array of floating point biquads

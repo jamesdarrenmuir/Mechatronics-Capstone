@@ -14,7 +14,6 @@
 
 fprintf(fid,'//---%s\n', comment);
 fprintf(fid,'//---%s\n', datestr(now,0));
-fprintf(fid,'    char        headerTime[] = "%s";\n',datestr(now,0));
 fprintf(fid,'    double         Kt = %f;              // motor torque constant (N-m/A)\n',Kt);
 fprintf(fid,'    double         Kvi = %f;              // amplifier constant (A/V)\n',Kvi);
 

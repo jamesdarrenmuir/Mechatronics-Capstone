@@ -17,7 +17,7 @@
 #include "matlabfiles.h"
 #include "math.h"
 
-#include Ks.h
+#include "Ks.h"
 //#define M_PI	3.14159265358979323846
 // #define Kvi		0.41		// Amplifier gain:  A/V
 // #define Kt		0.11		// DC motor torque constant:  N-m/A
@@ -108,8 +108,8 @@ void *Timer_Irq_Thread(void* resource)
 
 			/* compute control signal */
         	VDAout = cascade(	error,
-        						PIDF,
-        						PIDF_ns,
+        						single_loop_controller,
+        						single_loop_controller_ns,
         						VDAmin,
         						VDAmax );		// Vda
 			*VDAmV = trunc(1000.*VDAout);		// table show values
@@ -140,7 +140,7 @@ void *Timer_Irq_Thread(void* resource)
     err = matfile_addmatrix(mf, "pathref",	PathRef,			nsamp,	1,	0);
     err = matfile_addmatrix(mf, "position",	Position,			nsamp,	1,	0);
     err = matfile_addmatrix(mf, "torque",	Torque,				nsamp,	1,	0);
-    err = matfile_addmatrix(mf, "pidf",		(double *) PIDF,	6,		1,	0);
+    err = matfile_addmatrix(mf, "single_loop_controller",		(double *) single_loop_controller,	6,		1,	0);
     err = matfile_addmatrix(mf, "T",		&T,					1,		1,	0);
     matfile_close(mf);
 

@@ -227,10 +227,10 @@ int main(int argc, char **argv)
     amax=10.;
     dwell=5.0;
     seg mySegs[4]={				// revolutions
-		{16.000,	vmax,	amax,	dwell},
-		{0,	vmax,	amax,	dwell},
-        {-16.000,	vmax,	amax,	dwell},
-		{0,	vmax,	amax,	dwell}
+		{1.0,	vmax,	amax,	dwell},
+		{0.0,	vmax,	amax,	dwell},
+        {-1.0,	vmax,	amax,	dwell},
+		{0.0,	vmax,	amax,	dwell}
     };
     nseg = 4;
 

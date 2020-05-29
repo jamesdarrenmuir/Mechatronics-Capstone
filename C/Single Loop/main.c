@@ -103,8 +103,8 @@ void *Timer_Irq_Thread(void* resource)
 			if(done) nsamp = done;
 
 			// compute error signal
-			*pact = pos(&encC0, &startP)/2000.;	// current position (revs)
-			error = (*pref - *pact)*2*M_PI;		// error signal (radians)
+			*pact = pos(&encC0, &startP)/2000.;	// current position BDI to (revs)
+			error = (*pref - *pact)*2*M_PI;		// error signal revs to (radians)
 
 			/* compute control signal */
         	VDAout = cascade(	error,

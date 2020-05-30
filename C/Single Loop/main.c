@@ -206,9 +206,9 @@ double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax)
 /*--------------------------------------------------------------
  Function pos
 	Purpose		Read the encoder counter, compute the current
-			estimate of the motor velocity.
+			estimate of the motor position.
 	Parameters:	none
-	Returns: 	encoder speed (BDI/BTI)
+	Returns: 	encoder position (BDI)
 *--------------------------------------------------------------*/
 double pos(MyRio_Encoder *channel, int *startP)
 {

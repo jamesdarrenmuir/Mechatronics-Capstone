@@ -13,6 +13,9 @@ Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Rg = 16; % gearbox ratio, 16:1 speed reduction
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 
+% encoder
+BDI_per_rev = 500 * 4; % (BDI/rev) 500 windows * 4 ticks per window for a quadrature encoder
+
 % pulleys
 % pulley 1
 R1 = 2e-2; % (m) radius of the pulley closest to the motor
@@ -33,13 +36,6 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 
 % myRIO
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
-%% save K values as .h file
-% single loop
-fileID = fopen('../C/Single Loop/Ks.h','w');
-Ks2header(fileID, Kvi, Kt, "K values for SEA device")
-% double loop
-fileID = fopen('../C/Double Loop/Ks.h','w');
-Ks2header(fileID, Kvi, Kt, "K values for SEA device")
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
@@ -83,7 +79,7 @@ dcontroller = c2d(single_loop_controller, T);
 [sos, ~] = tf2sos(num, den);
 % save controller as .h file
 fileID = fopen('../C/Single Loop/single_loop_controller.h','w');
-sos2header(fileID, sos, "single_loop_controller", T, "Single loop PDF controller for SEA device")
+slc2header(fileID, sos, T, Kvi, Kt, BDI_per_rev);
 %% double loop controllers
 % the inner loop is nested inside the outer loop
 %% inner loop controller

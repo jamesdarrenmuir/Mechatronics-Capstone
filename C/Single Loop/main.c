@@ -15,7 +15,8 @@
 #include "matlabfiles.h"
 #include "math.h"
 
-#include "Ks.h"
+#include "single_loop_controller.h"
+
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
 #define ntot 5000
@@ -53,8 +54,6 @@ struct biquad
     double y1;
     double y2; // output
 };
-
-#include "single_loop_controller.h"
 
 // Prototypes
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
@@ -117,7 +116,7 @@ void *Timer_Irq_Thread(void *resource)
                 nsamp = done;
 
             // compute error signal
-            *pact = pos(&encC0, &startP) / 2000.; // current position BDI to (revs)
+            *pact = pos(&encC0, &startP) / BDI_per_rev.; // current position BDI to (revs)
             error = (*pref - *pact) * 2 * M_PI;   // error signal revs to (radians)
 
             /* compute control signal */
@@ -157,7 +156,7 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "pathref", PathRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "position", Position, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "torque", Torque, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0);
+    err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
 

@@ -19,7 +19,8 @@
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
-#define ntot 5000
+
+#define ntot 5000 // number of data points to save
 
 extern NiFpga_Session myrio_session;
 

@@ -19,7 +19,10 @@
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
-#define ntot 5000
+#define Tmax +0.5   // max motor output torque: N-m
+#define Tmin -0.5   // min motor output torque: N-m
+
+#define ntot 5000 // number of data points to save
 
 extern NiFpga_Session myrio_session;
 
@@ -57,7 +60,8 @@ struct biquad
 
 // Prototypes
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
-double pos(MyRio_Encoder *channel, int *startP);
+double pos(MyRio_Encoder *channel);
+double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch0);
 void *Timer_Irq_Thread(void *resource);
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
 
@@ -73,8 +77,9 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Encoder encC1;
     double PathRef[ntot], Position[ntot], Torque[ntot];
     int isave = 0;
-    double T, error, VDAout;
-    int j, err, startP;
+    double T, perror, terror;
+    VDAout;
+    int j, err;
     double t[ntot];
     double *pref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
     double *pact = &((threadResource->a_table + 1)->value);
@@ -83,11 +88,14 @@ void *Timer_Irq_Thread(void *resource)
     seg *mySegs = threadResource->profile;
     int nseg = threadResource->nseg;
 
+    double tout;
+    double tact;
+
     //  Initialize interfaces before allowing IRQ
-    AIO_initialize(&CI0, &CO0);                 // initialize analog I/O
-    Aio_Write(&CO0, 0.0);                       // stop motor
-    conC_Encoder_initialize(myrio_session, &encC0, 0);	// initialize encoder 0
-    conC_Encoder_initialize(myrio_session, &encC1, 1);	// initialize encoder 1
+    AIO_initialize(&CI0, &CO0);                        // initialize analog I/O
+    Aio_Write(&CO0, 0.0);                              // stop motor
+    conC_Encoder_initialize(myrio_session, &encC0, 0); // initialize encoder 0
+    conC_Encoder_initialize(myrio_session, &encC1, 1); // initialize encoder 1
 
     // printf("timeoutValue %g\n",(double)timeoutValue); // debut output
 
@@ -117,14 +125,19 @@ void *Timer_Irq_Thread(void *resource)
             if (done)
                 nsamp = done;
 
-            // compute error signal
-            *pact = pos(&encC0, &startP) / BDI_per_rev.; // current position BDI to (revs)
-            error = (*pref - *pact) * 2 * M_PI;   // error signal revs to (radians)
+            // outer loop (position control)
+            *pact = pos(&encC0) / BDI_per_rev.;  // current position BDI to (revs)
+            perror = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
 
-            /* compute control signal */
-            VDAout = cascade(error,
-                             single_loop_controller,
-                             single_loop_controller_ns,
+            tout = cascade(perror, outer_loop_controller, outer_loop_controller_ns, Tmax, Tmin);
+
+            // inner loop (torque control)
+            tact = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
+            terror = (tout - tact); // torque error (N-m)
+
+            VDAout = cascade(terror,
+                             inner_loop_controller,
+                             inner_loop_controller_ns,
                              VDAmin,
                              VDAmax);       // Vda
             *VDAmV = trunc(1000. * VDAout); // table show values
@@ -207,26 +220,46 @@ double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax)
 /*--------------------------------------------------------------
  Function pos
 	Purpose		Read the encoder counter, compute the current
-			estimate of the motor velocity.
-	Parameters:	none
-	Returns: 	encoder speed (BDI/BTI)
+			estimate of the motor position.
+	Parameters:	encoder channel
+	Returns: 	encoder position (BDI)
 *--------------------------------------------------------------*/
-double pos(MyRio_Encoder *channel, int *startP)
+double pos(MyRio_Encoder *channel)
 {
-    static int deltaP;
-    static int currentP;  // current position (sizeof(int) = 4 bytes
-    double position;      // speed estimate
-    static int first = 1; // first time calling vel();
+    int currentP; // current position (sizeof(int) = 4 bytes
+
+    static int startP;
+    static int first = 1; // first time calling pos();
+
+    int deltaP;
+    double position; // position estimate
 
     currentP = Encoder_Counter(channel);
+    // initialization
     if (first)
     {
-        *startP = currentP;
+        startP = currentP;
         first = 0;
     };
-    deltaP = currentP - *startP;
+
+    deltaP = currentP - startP;
     position = (double)deltaP; // BDI - displacement from starting position
     return position;
+}
+
+/*--------------------------------------------------------------
+ Function diff
+	Purpose		Return the difference between the angles of the two shafts
+	Parameters:	
+        ch0 - encoder channel 0
+        ch1 - encoder channel 1
+        tpr0 - ticks per revolution for encoder 0
+        tpr1 - ticks per revolution for encoder 1
+	Returns: 	encoder position (BDI)
+*--------------------------------------------------------------*/
+double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1)
+{
+    return ((pos(ch1) / tpr1) - (pos(ch0) / tpr0)) // (rev)
 }
 
 int main(int argc, char **argv)

@@ -58,7 +58,7 @@ struct biquad
 
 // Prototypes
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
-double pos(MyRio_Encoder *channel, int *startP);
+double pos(MyRio_Encoder *channel);
 void *Timer_Irq_Thread(void *resource);
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
 
@@ -74,7 +74,7 @@ void *Timer_Irq_Thread(void *resource)
     double PathRef[ntot], Position[ntot], Torque[ntot];
     int isave = 0;
     double T, error, VDAout;
-    int j, err, startP;
+    int j, err;
     double t[ntot];
     double *pref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
     double *pact = &((threadResource->a_table + 1)->value);
@@ -117,8 +117,8 @@ void *Timer_Irq_Thread(void *resource)
                 nsamp = done;
 
             // compute error signal
-            *pact = pos(&encC0, &startP) / BDI_per_rev.; // current position BDI to (revs)
-            error = (*pref - *pact) * 2 * M_PI;   // error signal revs to (radians)
+            *pact = pos(&encC0) / BDI_per_rev.; // current position BDI to (revs)
+            error = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
 
             /* compute control signal */
             VDAout = cascade(error,
@@ -207,23 +207,28 @@ double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax)
  Function pos
 	Purpose		Read the encoder counter, compute the current
 			estimate of the motor position.
-	Parameters:	none
+	Parameters:	encoder channel
 	Returns: 	encoder position (BDI)
 *--------------------------------------------------------------*/
-double pos(MyRio_Encoder *channel, int *startP)
+double pos(MyRio_Encoder *channel)
 {
-    static int deltaP;
-    static int currentP;  // current position (sizeof(int) = 4 bytes
-    double position;      // speed estimate
-    static int first = 1; // first time calling vel();
+    int currentP; // current position (sizeof(int) = 4 bytes
+
+    static int startP;
+    static int first = 1; // first time calling pos();
+
+    int deltaP;
+    double position; // position estimate
 
     currentP = Encoder_Counter(channel);
+    // initialization
     if (first)
     {
-        *startP = currentP;
+        startP = currentP;
         first = 0;
     };
-    deltaP = currentP - *startP;
+
+    deltaP = currentP - startP;
     position = (double)deltaP; // BDI - displacement from starting position
     return position;
 }

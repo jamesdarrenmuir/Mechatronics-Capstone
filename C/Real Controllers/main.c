@@ -87,22 +87,30 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
     MyRio_Encoder encC1;
-    double PathRef[ntot], Position[ntot], Torque[ntot]; //TODO: add more variables to logging, e.g. spring force, first and second encoder position, etc.
+    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot];
     int isave = 0;
-    double T, perror, terror; //TODO: seems like double loop stuff
     double VDAout;
     int j, err;
-    double t[ntot];
-    //TODO: add more show values to table
-    double *pref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
-    double *pact = &((threadResource->a_table + 1)->value);
-    double *VDAmV = &((threadResource->a_table + 2)->value);
+    double t[ntot]; // time vector
+
+    double *P2_ref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
+    double *P2_act = &((threadResource->a_table + 1)->value);
+    double *VDA_out_mV = &((threadResource->a_table + 2)->value); // mV
+    double *P1_act = &((threadResource->a_table + 3)->value);
+    double *Ts_ref = &((threadResource->a_table + 4)->value);
+    double *Ts_act = &((threadResource->a_table + 5)->value);
+
     int iseg = -1, itime = -1, nsamp, done;
     seg *mySegs = threadResource->profile;
     int nseg = threadResource->nseg;
-    //TODO: double loop stuff
-    double tout;
-    double tact;
+
+    double T; // time (s)
+    double P2_err; // output position error
+
+    //TODO: determine if this ifdef is necessary, or if the unused variable is fine
+    //#ifdef DOUBLE_LOOP
+    double T_err; // torque error
+    //#endif /* DOUBLE_LOOP */
 
     //  Initialize interfaces before allowing IRQ
     AIO_initialize(&CI0, &CO0);                        // initialize analog I/O
@@ -134,14 +142,16 @@ void *Timer_Irq_Thread(void *resource)
                           &iseg,
                           &itime,
                           T,
-                          pref); // reference position (revs)
+                          P2_ref); // reference position (revs)
             if (done)
                 nsamp = done;
 
+            *P2_act = pos(&encC1) / BDI_per_rev.;  // current position BDI to (revs)
+            *P1_act = pos(&encC0) / BDI_per_rev.;  // current position BDI to (revs)
+
             #ifdef SINGLE_LOOP
             // compute error signal
-            *pact = pos(&encC0) / BDI_per_rev.; // current position BDI to (revs)
-            error = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
+            error = (*P2_ref - *P2_act) * 2 * M_PI; // error signal revs to (radians)
 
             /* compute control signal */
             VDAout = cascade(error,
@@ -149,36 +159,38 @@ void *Timer_Irq_Thread(void *resource)
                              single_loop_controller_ns,
                              VDAmin,
                              VDAmax);       // Vda
-            *VDAmV = trunc(1000. * VDAout); // table show values
-            Aio_Write(&CO0, VDAout);        // output control value
+            *VDA_out_mV = trunc(1000. * VDAout); // table show values
             #endif /* SINGLE_LOOP */
 
             #ifdef DOUBLE_LOOP
             // outer loop (position control)
-            *pact = pos(&encC0) / BDI_per_rev.;  // current position BDI to (revs)
-            perror = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
+            P2_err = (*P2_ref - *P2_act) * 2 * M_PI; // error signal revs to (radians)
 
-            tout = cascade(perror, outer_loop_controller, outer_loop_controller_ns, Tmax, Tmin);
+            *Ts_ref = cascade(P2_err, outer_loop_controller, outer_loop_controller_ns, Tmax, Tmin);
 
             // inner loop (torque control)
-            tact = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
-            terror = (tout - tact); // torque error (N-m)
+            *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
+            Ts_err = (*Ts_act - *Ts_ref); // torque error (N-m)
 
-            VDAout = cascade(terror,
+            VDAout = cascade(Ts_err,
                              inner_loop_controller,
                              inner_loop_controller_ns,
                              VDAmin,
                              VDAmax);       // Vda
-            *VDAmV = trunc(1000. * VDAout); // table show values
-            Aio_Write(&CO0, VDAout);        // output control value
+            *VDA_out_mV = trunc(1000. * VDAout); // table show values
             #endif /* DOUBLE_LOOP */
+
+            Aio_Write(&CO0, VDAout);        // output control value
 
             /* save data */
             if (isave < ntot)
             {
-                Position[isave] = *pact * 2 * M_PI; // radians
-                PathRef[isave] = *pref * 2 * M_PI;  // radians
-                Torque[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
+                P2Act[isave] = *P2_act * 2 * M_PI; // radians
+                P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
+                TM[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
+                P1Act[isave] = *P1_act * 2 * M_PI; // rad
+                TsRef[isave] = *Ts_ref; // N-m
+                TsRef[isave] = *Ts_act; // N-m
                 isave++;
             }
             Irq_Acknowledge(irqAssert); /* Acknowledge the IRQ(s) the assertion. */
@@ -193,15 +205,24 @@ void *Timer_Irq_Thread(void *resource)
         printf("Can't open mat file error %d\n", err);
     for (j = 0; j < nsamp; j++)
         t[j] = (double)j * T;
-    err = matfile_addmatrix(mf, "t", t, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "mySegs", (double *)mySegs, nseg, 4, 0);
+    err = matfile_addmatrix(mf, "time", t, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "controller_segments", (double *)mySegs, nseg, 4, 0);
     err = matfile_addstring(mf, "headerTime", headerTime);
 
-    err = matfile_addstring(mf, "myName", "SEA Team");
-    err = matfile_addmatrix(mf, "pathref", PathRef, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "position", Position, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "torque", Torque, nsamp, 1, 0);
+    err = matfile_addstring(mf, "name", "SEA Team");
+    err = matfile_addmatrix(mf, "reference_position", P2Ref, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "actual_position", P2Act, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "motor_torque", TM, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
+    #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    #endif /* SINGLE_LOOP */
+    #ifdef DOUBLE_LOOP
+    err = matfile_addmatrix(mf, "inner_loop_controller", (double *)inner_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    err = matfile_addmatrix(mf, "outer_loop_controller", (double *)outer_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    #endif /* DOUBLE_LOOP */
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
 
@@ -304,10 +325,14 @@ int main(int argc, char **argv)
     int nseg;
 
     char *Table_Title = "Position Controller";
+ 
     table my_table[] = {
-        {"X_ref: rev  ", 0, 0.0},
-        {"X_act: rev  ", 0, 0.0},
-        {"VDAout: mV  ", 0, 0.0}};
+        {"P2_ref: rev  ", 0, 0.0}, // output pulley reference position
+        {"P2_act: rev  ", 0, 0.0}, // output pulley actual position
+        {"VDA_out: mV  ", 0, 0.0}, // myRIO output voltage
+        {"P1_act: rev  ", 0, 0.0}, // motor pulley actual position
+        {"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
+        {"Ts_act: N-m  ", 0, 0.0}}; // spring actual torque
 
     vmax = 10.;
     amax = 10.;

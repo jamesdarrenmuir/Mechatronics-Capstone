@@ -1,4 +1,5 @@
 // Single/Double Loop Controller Design Switch
+
 // #define SINGLE_LOOP
 #define DOUBLE_LOOP
 
@@ -151,10 +152,10 @@ void *Timer_Irq_Thread(void *resource)
 
             #ifdef SINGLE_LOOP
             // compute error signal
-            error = (*P2_ref - *P2_act) * 2 * M_PI; // error signal revs to (radians)
+            P2_err = (*P2_ref - *P2_act) * 2 * M_PI; // error signal revs to (radians)
 
             /* compute control signal */
-            VDAout = cascade(error,
+            VDAout = cascade(P2_err,
                              single_loop_controller,
                              single_loop_controller_ns,
                              VDAmin,

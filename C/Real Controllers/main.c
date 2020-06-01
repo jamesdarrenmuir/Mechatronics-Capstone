@@ -334,6 +334,8 @@ int main(int argc, char **argv)
         {"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
         {"Ts_act: N-m  ", 0, 0.0}}; // spring actual torque
 
+    int table_entries = 6;
+
     vmax = 10.;
     amax = 10.;
     dwell = 5.0;
@@ -381,7 +383,7 @@ int main(int argc, char **argv)
         return status;
     }
 
-    ctable2(Table_Title, my_table, 3); // start the table editor
+    ctable2(Table_Title, my_table, table_entries); // start the table editor
 
     //	All Done.  Terminate Timer Thread
     irqThread0.irqThreadRdy = NiFpga_False; /* Set  indicator to end the timer thread.*/

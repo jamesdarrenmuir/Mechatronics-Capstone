@@ -1,3 +1,7 @@
+// Single/Double Loop Controller Design Switch
+#define SINGLE_LOOP
+#define DOUBLE_LOOP
+
 /*
  * Copyright (c) 2015 Prof Garbini
  * Modified 2020 James Muir
@@ -15,7 +19,13 @@
 #include "matlabfiles.h"
 #include "math.h"
 
+#ifdef SINGLE_LOOP
+#include "single_loop_controller.h"
+#endif /* SINGLE_LOOP */
+
+#ifdef DOUBLE_LOOP
 #include "double_loop_controller.h"
+#endif /* DOUBLE_LOOP */
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
@@ -125,6 +135,22 @@ void *Timer_Irq_Thread(void *resource)
             if (done)
                 nsamp = done;
 
+            #ifdef SINGLE_LOOP
+            // compute error signal
+            *pact = pos(&encC0) / BDI_per_rev.; // current position BDI to (revs)
+            error = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
+
+            /* compute control signal */
+            VDAout = cascade(error,
+                             single_loop_controller,
+                             single_loop_controller_ns,
+                             VDAmin,
+                             VDAmax);       // Vda
+            *VDAmV = trunc(1000. * VDAout); // table show values
+            Aio_Write(&CO0, VDAout);        // output control value
+            #endif /* SINGLE_LOOP */
+
+            #ifdef DOUBLE_LOOP
             // outer loop (position control)
             *pact = pos(&encC0) / BDI_per_rev.;  // current position BDI to (revs)
             perror = (*pref - *pact) * 2 * M_PI; // error signal revs to (radians)
@@ -142,6 +168,7 @@ void *Timer_Irq_Thread(void *resource)
                              VDAmax);       // Vda
             *VDAmV = trunc(1000. * VDAout); // table show values
             Aio_Write(&CO0, VDAout);        // output control value
+            #endif /* DOUBLE_LOOP */
 
             /* save data */
             if (isave < ntot)

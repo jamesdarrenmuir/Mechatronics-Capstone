@@ -1,5 +1,5 @@
 // Single/Double Loop Controller Design Switch
-#define SINGLE_LOOP
+// #define SINGLE_LOOP
 #define DOUBLE_LOOP
 
 /*
@@ -37,7 +37,7 @@
 extern NiFpga_Session myrio_session;
 
 typedef struct
-{
+{  // segment for position profile
     double xfa;
     double v;
     double a;
@@ -54,7 +54,7 @@ typedef struct
 } ThreadResource;
 
 struct biquad
-{
+{ // second-order section
     double b0;
     double b1;
     double b2; // numerator
@@ -69,11 +69,13 @@ struct biquad
 };
 
 // Prototypes
+void *Timer_Irq_Thread(void *resource);
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
 double pos(MyRio_Encoder *channel);
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch0);
-void *Timer_Irq_Thread(void *resource);
+//TODO: check if Sramps prototype is needed
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
+
 
 /*  This Timer Thread controls the motor and acquires data */
 void *Timer_Irq_Thread(void *resource)
@@ -85,19 +87,20 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
     MyRio_Encoder encC1;
-    double PathRef[ntot], Position[ntot], Torque[ntot];
+    double PathRef[ntot], Position[ntot], Torque[ntot]; //TODO: add more variables to logging, e.g. spring force, first and second encoder position, etc.
     int isave = 0;
-    double T, perror, terror;
-    VDAout;
+    double T, perror, terror; //TODO: seems like double loop stuff
+    double VDAout;
     int j, err;
     double t[ntot];
+    //TODO: add more show values to table
     double *pref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
     double *pact = &((threadResource->a_table + 1)->value);
     double *VDAmV = &((threadResource->a_table + 2)->value);
     int iseg = -1, itime = -1, nsamp, done;
     seg *mySegs = threadResource->profile;
     int nseg = threadResource->nseg;
-
+    //TODO: double loop stuff
     double tout;
     double tact;
 
@@ -107,7 +110,7 @@ void *Timer_Irq_Thread(void *resource)
     conC_Encoder_initialize(myrio_session, &encC0, 0); // initialize encoder 0
     conC_Encoder_initialize(myrio_session, &encC1, 1); // initialize encoder 1
 
-    // printf("timeoutValue %g\n",(double)timeoutValue); // debut output
+    // printf("timeoutValue %g\n",(double)timeoutValue); // debug output
 
     while (threadResource->irqThreadRdy)
     {
@@ -194,7 +197,7 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "mySegs", (double *)mySegs, nseg, 4, 0);
     err = matfile_addstring(mf, "headerTime", headerTime);
 
-    err = matfile_addstring(mf, "myName", "Prof. J. Garbini");
+    err = matfile_addstring(mf, "myName", "SEA Team");
     err = matfile_addmatrix(mf, "pathref", PathRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "position", Position, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "torque", Torque, nsamp, 1, 0);

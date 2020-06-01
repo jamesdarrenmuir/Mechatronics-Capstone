@@ -153,7 +153,7 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "mySegs", (double *)mySegs, nseg, 4, 0);
     err = matfile_addstring(mf, "headerTime", headerTime);
 
-    err = matfile_addstring(mf, "myName", "Prof. J. Garbini");
+    err = matfile_addstring(mf, "myName", "SEA Team");
     err = matfile_addmatrix(mf, "pathref", PathRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "position", Position, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "torque", Torque, nsamp, 1, 0);

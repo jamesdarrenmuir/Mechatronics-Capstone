@@ -101,28 +101,7 @@ wn = 4 / (Ts * zeta); % (rad/s)
 z = 80; % Garbini's recommendation
 % z = 25;
 
-tp = -zeta*wn + wn*sqrt(1-zeta^2)*1j; % target pole
-ps = pole(inner_loop_plant); % open loop poles
-ang = angle(tp + z) - angle(tp - ps(1)) ...
-    - angle(tp - ps(2)) - (2*-1+1)*pi; % angle from tp to p
-p = imag(tp)/atan(ang) - real(tp); % controller pole
-[~,Kp] = zero(inner_loop_plant); % plant gain
-Kc = abs(tp-ps(1))*abs(tp-ps(2))*abs(tp+p)/abs(tp+z)/Kp; % controller gain
-inner_loop_controller = Kc*(s+z)/(s+p);
-
-% visualize controller design
-figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller Target Vs Result');
-open_loop_tf = series(inner_loop_controller, inner_loop_plant);
-rlocus(open_loop_tf)
-hold on
-xline(-zeta*wn, 'k:')
-sgrid(zeta,0)
-h2 = plot([tp conj(tp)], 'kx', 'MarkerSize',12);
-r = rlocus(open_loop_tf, 1);
-h1 = plot(r,'gs',    'MarkerEdgeColor','k',...
-                    'MarkerFaceColor','g',...
-                    'MarkerSize',9);
-legend([h1 h2] , ["closed loop poles" "target poles"])
+[~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, z, inner_loop_plant, 'Inner Loop');
 
 % evaluate inner loop controller
 % output response
@@ -193,3 +172,33 @@ fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 dlc2header(fileID, ilc, olc, T, Krot, Kvi, Kt, BDI_per_rev)
 %% close all open files
 fclose('all');
+%% functions
+function [pc, Kc, controller] = design_lead_compensator(zeta, Ts, zc, plant, name)
+    % this function designes a lead compensator for the given unity feedback system
+    wn = 4 / (Ts * zeta); % (rad/s)
+    tp = -zeta*wn + wn*sqrt(1-zeta^2)*1j; % target pole
+    
+    ps = pole(plant); % open loop poles
+    [zs, Kp] = zero(plant); % open loop zeros
+    
+    ang = angle(tp + zc) - sum(angle(tp - ps)) + sum(angle(tp - zs));
+    ang = mod((ang-pi), 2*pi);
+    
+    pc = imag(tp)/atan(ang) - real(tp); % controller pole
+    Kc = (prod(abs(tp-ps))*abs(tp+pc))/(prod(abs(tp-zs))*abs(tp+zc))/Kp; % controller gain
+    controller = zpk(-zc, -pc, Kc);
+
+    % visualize controller design
+    figure('NumberTitle', 'off', 'Name', append(name,' Controller Target vs Result'));
+    open_loop_tf = series(controller, plant);
+    rlocus(open_loop_tf)
+    hold on
+    xline(-zeta*wn, 'k:')
+    sgrid(zeta,0)
+    h2 = plot([tp conj(tp)], 'kx', 'MarkerSize',12);
+    r = rlocus(open_loop_tf, 1);
+    h1 = plot(r,'gs',    'MarkerEdgeColor','k',...
+                        'MarkerFaceColor','g',...
+                        'MarkerSize',9);
+    legend([h1 h2] , ["closed loop poles" "target poles"])
+end

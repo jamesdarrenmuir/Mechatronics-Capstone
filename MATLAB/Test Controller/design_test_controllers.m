@@ -35,7 +35,7 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 %% save K values as .h file
 % single loop
-fileID = fopen('../C/Test Controller/Ks.h','w');
+fileID = fopen('../../C/Test Controller/Ks.h','w');
 Ks2header(fileID, Kvi, Kt, "K values for SEA device")
 % % double loop
 % fileID = fopen('../C/Double Loop/Ks.h','w');
@@ -82,7 +82,7 @@ dcontroller = c2d(single_loop_controller, T);
 [num, den] = tfdata(dcontroller, 'v');
 [sos, ~] = tf2sos(num, den);
 % save controller as .h file
-fileID = fopen('../C/Test Controller/single_loop_controller.h','w');
+fileID = fopen('../../C/Test Controller/single_loop_controller.h','w');
 sos2header(fileID, sos, "single_loop_controller", T, "Single loop PDF controller for SEA device")
 % %% double loop controllers
 % % the inner loop is nested inside the outer loop

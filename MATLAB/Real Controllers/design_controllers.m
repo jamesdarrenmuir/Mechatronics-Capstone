@@ -78,7 +78,7 @@ dcontroller = c2d(single_loop_controller, T);
 [num, den] = tfdata(dcontroller, 'v');
 [slc, ~] = tf2sos(num, den);
 % save controller as .h file
-fileID = fopen('../C/Real Controllers/single_loop_controller.h','w');
+fileID = fopen('../../C/Real Controllers/single_loop_controller.h','w');
 slc2header(fileID, slc, T, Kvi, Kt, BDI_per_rev);
 %% double loop controllers
 % the inner loop is nested inside the outer loop
@@ -186,7 +186,7 @@ dcontroller = c2d(outer_loop_controller, T);
 [olc, ~] = tf2sos(num, den);
 
 Krot = K*R1;
-fileID = fopen('../C/Real Controllers/double_loop_controller.h','w');
+fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 dlc2header(fileID, ilc, olc, T, Krot, Kvi, Kt, BDI_per_rev)
 %% close all open files
 fclose('all');

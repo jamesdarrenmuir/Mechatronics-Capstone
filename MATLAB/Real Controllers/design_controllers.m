@@ -75,12 +75,9 @@ evaluate_controller(name, single_loop_controller, ...
 
 % discretize controller
 T = 0.005; %(s)
-dcontroller = c2d(single_loop_controller, T);
-[num, den] = tfdata(dcontroller, 'v');
-[slc, ~] = tf2sos(num, den);
 % save controller as .h file
 fileID = fopen('../../C/Real Controllers/single_loop_controller.h','w');
-slc2header(fileID, slc, T, Kvi, Kt, BDI_per_rev);
+slc2header(fileID, single_loop_controller, T, Kvi, Kt, BDI_per_rev);
 %% double loop controllers
 % the inner loop is nested inside the outer loop
 %% inner loop controller
@@ -121,21 +118,14 @@ outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
 % evaluate outer loop controller
 % 45 deg step
 evaluate_controller(name, outer_loop_controller, ...
-    outer_loop_plant, pi/4, 10, "Position (rad)", "Torque (N-m)")
+    outer_loop_plant, pi/4, 10, "Position (rad)", "Torque (N-m)");
 %% save double loop controller as .h file
 % discretize inner loop controller
 T = 0.005; %(s)
-dcontroller = c2d(inner_loop_controller, T);
-[num, den] = tfdata(dcontroller, 'v');
-[ilc, ~] = tf2sos(num, den);
-% discretize outer loop controller
-dcontroller = c2d(outer_loop_controller, T);
-[num, den] = tfdata(dcontroller, 'v');
-[olc, ~] = tf2sos(num, den);
 
 Krot = K*R1;
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
-dlc2header(fileID, ilc, olc, T, Krot, Kvi, Kt, BDI_per_rev)
+dlc2header(fileID, inner_loop_controller, outer_loop_controller, T, Krot, Kvi, Kt, BDI_per_rev)
 %% close all open files
 fclose('all');
 %% functions

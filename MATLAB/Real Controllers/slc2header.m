@@ -1,5 +1,5 @@
   % sos2header, by Prof Garbini, modified by James Muir
-  function slc2header(fid, sos, T, Kvi, Kt, BDI_per_rev)
+  function slc2header(fid, controller, T, Kvi, Kt, BDI_per_rev)
   % Save the single loop controller and other needed values to a (.h) header file.
   % Parameters:
   %    fid          - File indentity
@@ -14,19 +14,5 @@ fprintf(fid,'    double         Kt = %f;              // motor torque constant (
 fprintf(fid,'    double         Kvi = %f;              // amplifier constant (A/V)\n',Kvi);
 fprintf(fid,'    double         BDI_per_rev = %f;              // (BDI/rev)\n',BDI_per_rev);
 fprintf(fid,'    uint32_t    timeoutValue = %d;      // time interval - us; f_s = %g Hz\n',T*1e6,1/T);
-[ns,~]=size(sos);
-fprintf(fid,'    int         %s_ns = %d;              // number of sections\n',name,ns);
-fprintf(fid,'    static\tstruct\tbiquad %s[]={   // define the array of floating point biquads\n',name);
-for i=1:ns-1
-    fprintf(fid,'        {');
-    for j=[1,2,3,4,5,6]
-        fprintf(fid,'%e, ',sos(i,j));
-    end
-    fprintf(fid,'0, 0, 0, 0, 0},\n');
-end
-    fprintf(fid,'        {');
-    for j=[1,2,3,4,5,6]
-        fprintf(fid,'%e, ',sos(ns,j));
-    end
-    fprintf(fid,'0, 0, 0, 0, 0}\n        };\n');
+controller_printer(name, controller, T, fid)
 

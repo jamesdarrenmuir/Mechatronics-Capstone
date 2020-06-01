@@ -99,8 +99,10 @@ void *Timer_Irq_Thread(void *resource)
     double *P2_act = &((threadResource->a_table + 1)->value);
     double *VDA_out_mV = &((threadResource->a_table + 2)->value); // mV
     double *P1_act = &((threadResource->a_table + 3)->value);
+    #ifdef DOUBLE_LOOP
     double *Ts_ref = &((threadResource->a_table + 4)->value);
     double *Ts_act = &((threadResource->a_table + 5)->value);
+    #endif /* DOUBLE_LOOP */
 
     int iseg = -1, itime = -1, nsamp, done;
     seg *mySegs = threadResource->profile;
@@ -330,11 +332,18 @@ int main(int argc, char **argv)
         {"P2_ref: rev  ", 0, 0.0}, // output pulley reference position
         {"P2_act: rev  ", 0, 0.0}, // output pulley actual position
         {"VDA_out: mV  ", 0, 0.0}, // myRIO output voltage
-        {"P1_act: rev  ", 0, 0.0}, // motor pulley actual position
-        {"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
-        {"Ts_act: N-m  ", 0, 0.0}}; // spring actual torque
-
+        {"P1_act: rev  ", 0, 0.0} // motor pulley actual position
+        #ifdef DOUBLE_LOOP
+        ,{"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
+        {"Ts_act: N-m  ", 0, 0.0}  // spring actual torque
+        #endif /* DOUBLE_LOOP */
+        };
+    #ifdef SINGLE_LOOP
+    int table_entries = 4;
+    #endif /* SINGLE_LOOP */
+    #ifdef DOUBLE_LOOP
     int table_entries = 6;
+    #endif /* DOUBLE_LOOP */
 
     vmax = 10.;
     amax = 10.;

@@ -168,7 +168,6 @@ void *Timer_Irq_Thread(void *resource)
                              single_loop_controller_ns,
                              VDAmin,
                              VDAmax);       // Vda
-            *VDA_out_mV = trunc(1000. * VDAout); // table show values
             #endif /* SINGLE_LOOP */
 
             #ifdef DOUBLE_LOOP
@@ -186,9 +185,9 @@ void *Timer_Irq_Thread(void *resource)
                              inner_loop_controller_ns,
                              VDAmin,
                              VDAmax);       // Vda
-            *VDA_out_mV = trunc(1000. * VDAout); // table show values
             #endif /* DOUBLE_LOOP */
-
+            
+            *VDA_out_mV = trunc(1000. * VDAout); // table show values
             Aio_Write(&CO0, VDAout);        // output control value
 
             /* save data */

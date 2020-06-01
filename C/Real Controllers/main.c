@@ -89,7 +89,11 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
     MyRio_Encoder encC1;
-    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot];
+    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot];
+    #ifdef DOUBLE_LOOP
+    double TsRef[ntot], TsAct[ntot];
+    #endif /* DOUBLE_LOOP */
+
     int isave = 0;
     double VDAout;
     int j, err;
@@ -192,8 +196,10 @@ void *Timer_Irq_Thread(void *resource)
                 P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
                 TM[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
                 P1Act[isave] = *P1_act * 2 * M_PI; // rad
+                #ifdef DOUBLE_LOOP
                 TsRef[isave] = *Ts_ref; // N-m
-                TsRef[isave] = *Ts_act; // N-m
+                TsAct[isave] = *Ts_act; // N-m
+                #endif /* DOUBLE_LOOP */
                 isave++;
             }
             Irq_Acknowledge(irqAssert); /* Acknowledge the IRQ(s) the assertion. */
@@ -216,12 +222,12 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "actual_position", P2Act, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_torque", TM, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* SINGLE_LOOP */
     #ifdef DOUBLE_LOOP
+    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "inner_loop_controller", (double *)inner_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     err = matfile_addmatrix(mf, "outer_loop_controller", (double *)outer_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* DOUBLE_LOOP */

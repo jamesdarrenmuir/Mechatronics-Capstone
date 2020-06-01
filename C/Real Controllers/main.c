@@ -16,7 +16,6 @@
 #include "TimerIRQ.h"
 #include "ctable2.h"
 #include "Encoder.h"
-#include "conC_encoder_initialize.c"
 #include <unistd.h>
 #include "matlabfiles.h"
 #include "math.h"

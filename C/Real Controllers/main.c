@@ -109,10 +109,9 @@ void *Timer_Irq_Thread(void *resource)
     double T; // time (s)
     double P2_err; // output position error
 
-    //TODO: determine if this ifdef is necessary, or if the unused variable is fine
-    //#ifdef DOUBLE_LOOP
+    #ifdef DOUBLE_LOOP
     double Ts_err; // torque error
-    //#endif /* DOUBLE_LOOP */
+    #endif /* DOUBLE_LOOP */
 
     //  Initialize interfaces before allowing IRQ
     AIO_initialize(&CI0, &CO0);                        // initialize analog I/O

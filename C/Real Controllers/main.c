@@ -72,7 +72,7 @@ struct biquad
 void *Timer_Irq_Thread(void *resource);
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
 double pos(MyRio_Encoder *channel);
-double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch0);
+double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1);
 //TODO: check if Sramps prototype is needed
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
 
@@ -109,7 +109,7 @@ void *Timer_Irq_Thread(void *resource)
 
     //TODO: determine if this ifdef is necessary, or if the unused variable is fine
     //#ifdef DOUBLE_LOOP
-    double T_err; // torque error
+    double Ts_err; // torque error
     //#endif /* DOUBLE_LOOP */
 
     //  Initialize interfaces before allowing IRQ
@@ -146,8 +146,8 @@ void *Timer_Irq_Thread(void *resource)
             if (done)
                 nsamp = done;
 
-            *P2_act = pos(&encC1) / BDI_per_rev.;  // current position BDI to (revs)
-            *P1_act = pos(&encC0) / BDI_per_rev.;  // current position BDI to (revs)
+            *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)
+            *P1_act = pos(&encC0) / BDI_per_rev;  // current position BDI to (revs)
 
             #ifdef SINGLE_LOOP
             // compute error signal
@@ -207,7 +207,6 @@ void *Timer_Irq_Thread(void *resource)
         t[j] = (double)j * T;
     err = matfile_addmatrix(mf, "time", t, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "controller_segments", (double *)mySegs, nseg, 4, 0);
-    err = matfile_addstring(mf, "headerTime", headerTime);
 
     err = matfile_addstring(mf, "name", "SEA Team");
     err = matfile_addmatrix(mf, "reference_position", P2Ref, nsamp, 1, 0);
@@ -310,7 +309,7 @@ double pos(MyRio_Encoder *channel)
 *--------------------------------------------------------------*/
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1)
 {
-    return ((pos(ch1) / tpr1) - (pos(ch0) / tpr0)) // (rev)
+    return ((pos(ch1) / tpr1) - (pos(ch0) / tpr0)); // (rev)
 }
 
 int main(int argc, char **argv)

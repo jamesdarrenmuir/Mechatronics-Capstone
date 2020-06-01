@@ -355,9 +355,9 @@ int main(int argc, char **argv)
     amax = 10.;
     dwell = 5.0;
     seg mySegs[4] = {// revolutions
-                     {1.0, vmax, amax, dwell},
+                     {0.25, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell},
-                     {-1.0, vmax, amax, dwell},
+                     {-0.25, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell}};
     nseg = 4;
 

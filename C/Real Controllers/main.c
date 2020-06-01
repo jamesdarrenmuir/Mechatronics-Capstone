@@ -22,8 +22,10 @@
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
+#ifdef DOUBLE_LOOP
 #define Tmax +0.5   // max motor output torque: N-m
 #define Tmin -0.5   // min motor output torque: N-m
+#endif /* DOUBLE_LOOP */
 
 #define ntot 5000 // number of data points to save
 

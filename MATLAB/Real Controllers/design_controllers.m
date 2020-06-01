@@ -13,22 +13,25 @@ Jm = 2.14e-6; % (kg-m^2) moment of inertia of the motor
 Rg = 16; % gearbox ratio, 16:1 speed reduction
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox (as seen by the motor)
 
+% shaft couplers
+Js = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
+
 % encoder
 BDI_per_rev = 500 * 4; % (BDI/rev) 500 windows * 4 ticks per window for a quadrature encoder
 
 % pulleys
 % pulley 1
 R1 = 2e-2; % (m) radius of the pulley closest to the motor
-Jp1 = 3.297e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
+Jp1 = 2.846e-6; % (kg-m^2) moment of inertia of the pulley closest to the motor
 % pulley 2
 R2 = R1; % (m) radius of the pulley furthest from the motor
 Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley furthest from the motor
 
 % load
-JL = .007; % (kg-m^2) moment of inertia of the load
+JL = .00101; % (kg-m^2) moment of inertia of the load
 
 % springs
-K1 = 1e4; % (N/m) spring constant of upper spring
+K1 = 578; % (N/m) spring constant of upper spring
 K2 = K1; % (N/m) spring constant of lower spring
 
 % amplifier
@@ -39,7 +42,7 @@ maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
-J1 = Jm + Jg;
+J1 = Jm + Jg + Js;
 J2 = Jp2 + JL;
 %% single loop controller
 
@@ -57,7 +60,7 @@ figure('NumberTitle', 'off', 'Name', 'Single Loop Output');
 closed_loop = feedback(series(single_loop_controller, single_loop_plant), 1);
 opt = stepDataOptions('StepAmplitude', pi/4); % 45 deg rotation step
 h = stepplot(closed_loop, opt);
-xlim([0 100])
+xlim([0 10])
 title("Output vs Time")
 ylabel("Position (rad)")
 h.showCharacteristic('SettlingTime')

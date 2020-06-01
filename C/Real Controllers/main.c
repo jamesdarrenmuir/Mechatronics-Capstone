@@ -1,7 +1,7 @@
 // Single/Double Loop Controller Design Switch
 
-// #define SINGLE_LOOP
-#define DOUBLE_LOOP
+#define SINGLE_LOOP
+// #define DOUBLE_LOOP
 
 /*
  * Copyright (c) 2015 Prof Garbini
@@ -16,17 +16,10 @@
 #include "TimerIRQ.h"
 #include "ctable2.h"
 #include "Encoder.h"
+#include "conC_encoder_initialize.c"
 #include <unistd.h>
 #include "matlabfiles.h"
 #include "math.h"
-
-#ifdef SINGLE_LOOP
-#include "single_loop_controller.h"
-#endif /* SINGLE_LOOP */
-
-#ifdef DOUBLE_LOOP
-#include "double_loop_controller.h"
-#endif /* DOUBLE_LOOP */
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
@@ -69,6 +62,14 @@ struct biquad
     double y2; // output
 };
 
+#ifdef SINGLE_LOOP
+#include "single_loop_controller.h"
+#endif /* SINGLE_LOOP */
+
+#ifdef DOUBLE_LOOP
+#include "double_loop_controller.h"
+#endif /* DOUBLE_LOOP */
+
 // Prototypes
 void *Timer_Irq_Thread(void *resource);
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
@@ -76,7 +77,7 @@ double pos(MyRio_Encoder *channel);
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1);
 //TODO: check if Sramps and conC_Encoder_initialize prototype is needed
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
-//NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
+NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
 
 
 /*  This Timer Thread controls the motor and acquires data */

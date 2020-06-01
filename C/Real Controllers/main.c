@@ -76,7 +76,7 @@ double pos(MyRio_Encoder *channel);
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1);
 //TODO: check if Sramps and conC_Encoder_initialize prototype is needed
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
-NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
+//NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
 
 
 /*  This Timer Thread controls the motor and acquires data */

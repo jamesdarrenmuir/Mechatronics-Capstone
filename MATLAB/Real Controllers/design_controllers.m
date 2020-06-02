@@ -180,7 +180,7 @@ function [info, bw] = evaluate_controller(name, controller, plant, stepAmp, time
     % effort response
     figure('NumberTitle', 'off', 'Name', append(name, ' Effort'));
     controller_effort_transfer_function = feedback(tf(controller), plant);
-    step(controller_effort_transfer_function, opt)
+    step(controller_effort_transfer_function, time, opt)
     title("Effort vs Time")
     ylabel(effortLabel)
 end

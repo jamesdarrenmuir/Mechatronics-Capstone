@@ -44,33 +44,23 @@ maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
-J1 = Jm + Jg + Js;
+J1 = Jm + Jg;
 J2 = Jp2 + JL;
+J3 = Jp1 + Js;
 %% single loop controller
 name = 'Single Loop';
 % set up plant
 single_loop_plant = Kvi * Kt * K*R1*R2*Rg ... 
-    /(J2*(Rg^2*J1+Jp1)*s^4+K*(Rg^2*R2^2*J1+Jp1*R2^2+J2*R1^2)*s^2);
+    /(J2*(Rg^2*J1+J3)*s^4+K*(Rg^2*R2^2*J1+J3*R2^2+J2*R1^2)*s^2);
 single_loop_plant = minreal(single_loop_plant);
 
 % design controller
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 
-% design lead controller
-% 10% OS -> zeta = 0.6
-% zeta = .6;
-% Ts = 1; % (s)
-% 
-% wn = 4 / (Ts * zeta); % (rad/s)
-% zc = 80;
-% 
-% [~, ~, single_loop_controller] = design_lead_compensator(zeta, Ts, ...
-%     zc, single_loop_plant, name);
-
 % evaluate single loop controller
 % 45 deg step
-evaluate_controller(name, single_loop_controller, ...
+[info, bandwidth] = evaluate_controller(name, single_loop_controller, ...
     single_loop_plant, pi/4, 1000, "Position (rad)", "Voltage (V)");
 
 % discretize controller
@@ -83,7 +73,7 @@ slc2header(fileID, single_loop_controller, T, Kvi, Kt, BDI_per_rev);
 %% inner loop controller
 name = 'Inner Loop';
 % set up plant
-inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(Jp1+J1*Rg^2)*s^2);
+inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(J3+J1*Rg^2)*s^2);
 inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
@@ -159,18 +149,21 @@ function [pc, Kc, controller] = design_lead_compensator(zeta, Ts, zc, plant, nam
     legend([h1 h2] , ["closed loop poles" "target poles"])
 end
 
-function [info, bw] = evaluate_controller(name, controller, plant, stepAmp, time, outputLabel, effortLabel)
+function [info, bw] = evaluate_controller(name, controller, plant, ...
+    stepAmp, time, outputLabel, effortLabel)
     % plots graphs with information about a controller
+    figure('NumberTitle', 'off', 'Name', name);
     
+    % Specified Equal Timescale Plots
     % output response
-    figure('NumberTitle', 'off', 'Name', append(name, ' Output'));
+    subplot(2, 2, 1)
     closed_loop = feedback(series(controller, plant), 1);
     opt = stepDataOptions('StepAmplitude', stepAmp); % 45 deg rotation step
     h = stepplot(closed_loop, time, opt);
     hold on
     y = yline(stepAmp);
     legend(y, 'Target')
-    title("Output vs Time")
+    title("Output vs Time (Specified Equal Timescale)")
     ylabel(outputLabel)
     h.showCharacteristic('SettlingTime')
     h.showCharacteristic('PeakResponse')
@@ -178,9 +171,30 @@ function [info, bw] = evaluate_controller(name, controller, plant, stepAmp, time
     bw = bandwidth(closed_loop);
 
     % effort response
-    figure('NumberTitle', 'off', 'Name', append(name, ' Effort'));
+    subplot(2, 2, 3)
     controller_effort_transfer_function = feedback(tf(controller), plant);
     step(controller_effort_transfer_function, time, opt)
-    title("Effort vs Time")
+    title("Effort vs Time (Specified Equal Timescale)")
+    ylabel(effortLabel)
+    
+    % Scaled Timescale Plots
+    % output response
+    subplot(2, 2, 2)
+    closed_loop = feedback(series(controller, plant), 1);
+    opt = stepDataOptions('StepAmplitude', stepAmp); % 45 deg rotation step
+    h = stepplot(closed_loop, opt);
+    hold on
+    y = yline(stepAmp);
+    legend(y, 'Target')
+    title("Output vs Time (Scaled Timescale)")
+    ylabel(outputLabel)
+    h.showCharacteristic('SettlingTime')
+    h.showCharacteristic('PeakResponse')
+
+    % effort response
+    subplot(2, 2, 4)
+    controller_effort_transfer_function = feedback(tf(controller), plant);
+    step(controller_effort_transfer_function, opt)
+    title("Effort vs Time (Scaled Timescale)")
     ylabel(effortLabel)
 end

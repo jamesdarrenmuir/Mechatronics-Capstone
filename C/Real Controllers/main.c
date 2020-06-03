@@ -177,7 +177,7 @@ void *Timer_Irq_Thread(void *resource)
             *P1_act = pos(&encC0) / BDI_per_rev;  // current position BDI to (revs)
           
             // current output torque (N-m)
-            *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot * -1; // -1 because torque opposes displacement
+            *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;
 
             #ifndef TORQUE
              // compute position error

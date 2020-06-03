@@ -17,9 +17,12 @@ Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox
 % shaft couplers
 Jsc = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
 
-% encoder
-% 500 windows * 4 ticks per window for a quadrature encoder
-BDI_per_rev = 500 * 4; % (BDI/rev) 
+% motor encoder
+BPRM = 500; % BDI Per Revolution Motor (BDI/rev)
+
+% output encoder
+% 2000 CPR * 4 ticks per window for a quadrature encoder
+BPRL = 2000 * 4; % BDI Per Revolution Load (BDI/rev)
 
 % pulleys
 % pulley 1 (closest to the motor)
@@ -41,12 +44,17 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 
 % myRIO
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
+
+% discretization
+T = 0.005; %(s)
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
 J1 = Jm + Jg;
 J2 = Jp2 + JL;
 J3 = Jp1 + Jsc;
+% for controller header files
+Krot = K*R2^2;
 %% single loop controller
 % simulations show controller is unstable
 % in actuality, it might not be due to damping in the real system not
@@ -72,11 +80,9 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 % hold on;
 % rlocus(series(single_loop_controller, single_loop_plant), 1)
 
-% discretize controller
-T = 0.005; %(s)
 % save controller as .h file
 fileID = fopen('../../C/Real Controllers/single_loop_controller.h','w');
-slc2header(fileID, single_loop_controller, T, Kvi, Kt, BDI_per_rev);
+ctrlrs2header(fileID, {single_loop_controller}, {'slc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
 %% double loop controllers
 % the inner loop is nested inside the outer loop
 %% inner loop controller
@@ -119,12 +125,8 @@ outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
 evaluate_controller(name, outer_loop_controller, ...
     outer_loop_plant, pi/4, 10, "Position (rad)", "Torque (N-m)");
 %% save double loop controller as .h file
-% discretize inner loop controller
-T = 0.005; %(s)
-
-Krot = K*R2^2;
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
-dlc2header(fileID, inner_loop_controller, outer_loop_controller, T, Krot, Kvi, Kt, BDI_per_rev, Rg)
+ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
 %% close all open files
 fclose('all');
 %% functions

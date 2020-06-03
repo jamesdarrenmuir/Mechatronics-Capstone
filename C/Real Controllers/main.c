@@ -65,7 +65,7 @@ struct biquad
 };
 
 #ifdef SINGLE_LOOP
-#include "single_loop_controller.h"
+#include "slc.h"
 #endif /* SINGLE_LOOP */
 
 #ifndef SINGLE_LOOP
@@ -92,6 +92,7 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
     MyRio_Encoder encC1;
+    double t[ntot]; // time vector
     double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot];
     #ifndef SINGLE_LOOP
     double TsRef[ntot], TsAct[ntot];
@@ -100,7 +101,6 @@ void *Timer_Irq_Thread(void *resource)
     int isave = 0;
     double VDAout;
     int j, err;
-    double t[ntot]; // time vector
 
     double *P2_ref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
     double *P2_act = &((threadResource->a_table + 1)->value);
@@ -177,7 +177,7 @@ void *Timer_Irq_Thread(void *resource)
             *P1_act = pos(&encC0) / BDI_per_rev;  // current position BDI to (revs)
           
             // current output torque (N-m)
-            *Ts_act = diff(&encC0, &encC1, BDI_per_rev * Rg, BDI_per_rev) * 2 * M_PI * Krot;
+            *Ts_act = diff(&encC0, &encC1, BPRM * Rg, BPRL) * 2 * M_PI * Krot;
 
             #ifndef TORQUE
              // compute position error
@@ -186,7 +186,7 @@ void *Timer_Irq_Thread(void *resource)
 
             #ifdef DOUBLE_LOOP
             // outer loop (position control)
-            *Ts_ref = cascade(P2_err, outer_loop_controller, outer_loop_controller_ns, Tmin, Tmax);
+            *Ts_ref = cascade(P2_err, olc, olc_ns, Tmin, Tmax);
             #endif /* DOUBLE_LOOP */
 
             #ifndef SINGLE_LOOP
@@ -196,8 +196,8 @@ void *Timer_Irq_Thread(void *resource)
             #ifdef SINGLE_LOOP
             /* compute control signal */
             VDAout = cascade(P2_err,
-                             single_loop_controller,
-                             single_loop_controller_ns,
+                             slc,
+                             slc_ns,
                              VDAmin,
                              VDAmax);       // Vda
             #endif /* SINGLE_LOOP */
@@ -205,8 +205,8 @@ void *Timer_Irq_Thread(void *resource)
             #ifndef SINGLE_LOOP
             // inner loop (torque control)
             VDAout = cascade(Ts_err,
-                             inner_loop_controller,
-                             inner_loop_controller_ns,
+                             ilc,
+                             ilc_ns,
                              VDAmin,
                              VDAmax);       // Vda
             #endif /* !SINGLE_LOOP */
@@ -248,13 +248,13 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "motor_torque", TM, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
     #ifdef SINGLE_LOOP
-    err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    err = matfile_addmatrix(mf, "slc", (double *)slc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* SINGLE_LOOP */
     #ifndef SINGLE_LOOP
     err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "inner_loop_controller", (double *)inner_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
-    err = matfile_addmatrix(mf, "outer_loop_controller", (double *)outer_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    err = matfile_addmatrix(mf, "ilc", (double *)ilc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
+    err = matfile_addmatrix(mf, "olc", (double *)olc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* !SINGLE_LOOP */
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
@@ -339,7 +339,7 @@ double pos(MyRio_Encoder *channel)
         ch1 - encoder channel 1
         tpr0 - ticks per revolution for encoder 0
         tpr1 - ticks per revolution for encoder 1
-	Returns: 	encoder position (BDI)
+	Returns: angle difference (rev)
 *--------------------------------------------------------------*/
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1)
 {

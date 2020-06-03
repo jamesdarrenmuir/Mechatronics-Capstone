@@ -49,7 +49,8 @@ J2 = Jp2 + JL;
 J3 = Jp1 + Jsc;
 %% single loop controller
 % simulations show controller is unstable
-% 
+% in actuality, it might not be due to damping in the real system not
+% present in the model
 name = 'Single Loop';
 % set up plant
 single_loop_plant = Kvi * Kt * K*R1*R2*Rg ... 
@@ -64,6 +65,12 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 % 45 deg step
 [info, bandwidth] = evaluate_controller(name, single_loop_controller, ...
     single_loop_plant, pi/4, 1000, "Position (rad)", "Voltage (V)");
+
+% visualize controller
+% figure
+% rlocus(series(single_loop_controller, single_loop_plant))
+% hold on;
+% rlocus(series(single_loop_controller, single_loop_plant), 1)
 
 % discretize controller
 T = 0.005; %(s)

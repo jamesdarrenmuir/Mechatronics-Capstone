@@ -98,7 +98,7 @@ void *Timer_Irq_Thread(void *resource)
     #ifdef LOGGING
     MATFILE *mf;
     int j, err, isave = 0;
-    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot], t[ntot]; // time vector
+    double P2Ref[ntot], P2Act[ntot], TMG[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot], t[ntot]; // time vector
     #endif /* LOGGING */
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
@@ -224,7 +224,7 @@ void *Timer_Irq_Thread(void *resource)
             {
                 P2Act[isave] = *P2_act * 2 * M_PI; // radians
                 P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
-                TM[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
+                TMG[isave] = VDAout * Kt * Kvi * Rg;  // N-m	--- NEW AMPLIFIER
                 P1Act[isave] = *P1_act * 2 * M_PI; // rad
                 TsAct[isave] = *Ts_act; // N-m
                 TsRef[isave] = *Ts_ref; // N-m
@@ -251,7 +251,7 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addstring(mf, "name", "SEA Team");
     err = matfile_addmatrix(mf, "reference_position", P2Ref, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "actual_position", P2Act, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "motor_torque", TM, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "motor_torque", TMG, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "slc", (double *)slc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller

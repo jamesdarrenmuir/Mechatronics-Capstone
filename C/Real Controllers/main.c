@@ -380,8 +380,8 @@ int main(int argc, char **argv)
     #endif /* SINGLE_LOOP */
 
     #ifndef TORQUE
-    vmax = 10.; // (rev/s)
-    amax = 2.; // (rev/s^2)
+    vmax = 0.25; // (rev/s)
+    amax = 1.; // (rev/s^2)
     dwell = 5.0; // (s)
     seg mySegs[4] = {// (rev)
                      {0.25, vmax, amax, dwell},

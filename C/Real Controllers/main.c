@@ -173,8 +173,8 @@ void *Timer_Irq_Thread(void *resource)
                 printf("nsamp (inside timer thread): %g\n",(double) nsamp);
 
             // current positions
-            *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)
-            *P1_act = pos(&encC0) / BDI_per_rev;  // current position BDI to (revs)
+            *P2_act = pos(&encC1) / BPRL;  // current position BDI to (revs)
+            *P1_act = pos(&encC0) / BPRM;  // current position BDI to (revs)
           
             // current output torque (N-m)
             *Ts_act = diff(&encC0, &encC1, BPRM * Rg, BPRL) * 2 * M_PI * Krot;

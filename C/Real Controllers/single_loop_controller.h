@@ -1,7 +1,7 @@
     double         Krot = 0.462400;              // rotational spring constant (N-m/rad)
     double         Kt = 0.021400;              // motor torque constant (N-m/A)
     double         Kvi = 0.410000;              // amplifier constant (A/V)
-    double         BPRM = 500.000000;              // (BDI/rev)
+    double         BPRM = 2000.000000;              // (BDI/rev)
     double         BPRL = 8000.000000;              // (BDI/rev)
     double         Rg = 16.000000;              // gear ratio
     uint32_t    timeoutValue = 5000;      // time interval - us; f_s = 200 Hz

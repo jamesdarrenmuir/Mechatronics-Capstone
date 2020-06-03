@@ -18,7 +18,7 @@ Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox
 Jsc = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
 
 % motor encoder
-BPRM = 500; % BDI Per Revolution Motor (BDI/rev)
+BPRM = 500 * 4; % BDI Per Revolution Motor (BDI/rev)
 
 % output encoder
 % 2000 CPR * 4 ticks per window for a quadrature encoder

@@ -28,7 +28,7 @@
 #define Tmin -0.5   // min motor output torque: N-m
 #endif /* DOUBLE_LOOP */
 
-#define ntot 5000 // number of data points to save
+#define ntot 6000 // number of data points to save
 
 extern NiFpga_Session myrio_session;
 
@@ -377,8 +377,8 @@ int main(int argc, char **argv)
 
     #ifndef TORQUE
     vmax = 0.25; // (rev/s)
-    amax = 1.; // (rev/s^2)
-    dwell = 5.0; // (s)
+    amax = 2.; // (rev/s^2)
+    dwell = 2.0; // (s)
     seg mySegs[4] = {// (rev)
                      {0.25, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell},

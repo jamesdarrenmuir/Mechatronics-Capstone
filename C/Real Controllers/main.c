@@ -116,7 +116,9 @@ void *Timer_Irq_Thread(void *resource)
     int nseg = threadResource->nseg;
 
     double T; // time (s)
+    #ifndef TORQUE
     double P2_err; // output position error
+    #endif /* TORQUE */
 
     #ifndef SINGLE_LOOP
     double Ts_err; // torque error

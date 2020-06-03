@@ -1,4 +1,4 @@
-    double         Krot = 23.120000;              // rotational spring constant (N-m/rad)
+    double         Krot = 0.462400;              // rotational spring constant (N-m/rad)
     double         Kt = 0.021400;              // motor torque constant (N-m/A)
     double         Kvi = 0.410000;              // amplifier constant (A/V)
     double         BDI_per_rev = 2000.000000;              // (BDI/rev)

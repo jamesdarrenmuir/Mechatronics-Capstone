@@ -2,7 +2,7 @@
 
 // #define SINGLE_LOOP
 // #define DOUBLE_LOOP
-#define TORQUE
+// #define TORQUE
 
 /*
  * Copyright (c) 2015 Prof Garbini

@@ -3,6 +3,7 @@
 // #define SINGLE_LOOP
 // #define DOUBLE_LOOP
 #define TORQUE
+// #define LOGGING
 
 /*
  * Copyright (c) 2015 Prof Garbini
@@ -18,7 +19,9 @@
 #include "ctable2.h"
 #include "Encoder.h"
 #include <unistd.h>
+#ifdef LOGGING
 #include "matlabfiles.h"
+#endif /* LOGGING */
 #include "math.h"
 
 #define VDAmax +7.5 // max D/A converter voltage: V
@@ -28,7 +31,9 @@
 #define Tmin -0.5   // min motor output torque: N-m
 #endif /* DOUBLE_LOOP */
 
+#ifdef LOGGING
 #define ntot 5000 // number of data points to save
+#endif /* LOGGING */
 
 extern NiFpga_Session myrio_session;
 
@@ -65,7 +70,7 @@ struct biquad
 };
 
 #ifdef SINGLE_LOOP
-#include "slc.h"
+#include "single_loop_controller.h"
 #endif /* SINGLE_LOOP */
 
 #ifndef SINGLE_LOOP
@@ -88,19 +93,21 @@ void *Timer_Irq_Thread(void *resource)
 
     ThreadResource *threadResource = (ThreadResource *)resource;
     uint32_t irqAssert = 0;
+    #ifdef LOGGING
     MATFILE *mf;
-    MyRio_Aio CI0, CO0;
-    MyRio_Encoder encC0;
-    MyRio_Encoder encC1;
+    int j, err;
+    int isave = 0;
     double t[ntot]; // time vector
     double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot];
     #ifndef SINGLE_LOOP
     double TsRef[ntot], TsAct[ntot];
     #endif /* !SINGLE_LOOP */
+    #endif /* LOGGING */
+    MyRio_Aio CI0, CO0;
+    MyRio_Encoder encC0;
+    MyRio_Encoder encC1;
 
-    int isave = 0;
     double VDAout;
-    int j, err;
 
     double *P2_ref = &((threadResource->a_table + 0)->value); //Convenient pointer names for the table values
     double *P2_act = &((threadResource->a_table + 1)->value);
@@ -170,7 +177,7 @@ void *Timer_Irq_Thread(void *resource)
 
             if (done)
                 nsamp = done;
-                printf("nsamp (inside timer thread): %g\n",(double) nsamp);
+                // printf("nsamp (inside timer thread): %g\n",(double) nsamp); //DEBUG
 
             // current positions
             *P2_act = pos(&encC1) / BPRL;  // current position BDI to (revs)
@@ -214,6 +221,7 @@ void *Timer_Irq_Thread(void *resource)
             *VDA_out_mV = trunc(1000. * VDAout); // table show values
             Aio_Write(&CO0, VDAout);        // output control value
 
+            #ifdef LOGGING
             /* save data */
             if (isave < ntot)
             {
@@ -227,11 +235,14 @@ void *Timer_Irq_Thread(void *resource)
                 #endif /* !SINGLE_LOOP */
                 isave++;
             }
+            #endif /* LOGGING */
+
             Irq_Acknowledge(irqAssert); /* Acknowledge the IRQ(s) the assertion. */
         }
     }
     Aio_Write(&CO0, 0.0); // stop motor
     printf("nsamp: %g\n",(double) nsamp); // debug print statement
+    #ifdef LOGGING
     //---Save Data to a .mat file in MKS units
     printf("Write MATLAB file\n");
     mf = openmatfile("SEA.mat", &err);
@@ -258,6 +269,7 @@ void *Timer_Irq_Thread(void *resource)
     #endif /* !SINGLE_LOOP */
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
+    #endif /* LOGGING */
 
     pthread_exit(NULL); /* Exit the new thread. */
     return NULL;

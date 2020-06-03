@@ -363,7 +363,7 @@ int main(int argc, char **argv)
         {"P2_ref: rev  ", 0, 0.0}, // output pulley reference position
         {"P2_act: rev  ", 0, 0.0}, // output pulley actual position
         {"VDA_out: mV  ", 0, 0.0}, // myRIO output voltage
-        {"P1_act: rev  ", 0, 0.0} // motor pulley actual position
+        {"P1_act: rev  ", 0, 0.0}, // motor pulley actual position
         {"Ts_act: N-m  ", 0, 0.0}  // spring actual torque
         #ifndef SINGLE_LOOP
         ,{"Ts_ref: N-m  ", 0, 0.0} // spring reference torque

@@ -234,7 +234,7 @@ void *Timer_Irq_Thread(void *resource)
     // printf("nsamp: %g\n",(double) nsamp); // debug print statement
     //---Save Data to a .mat file in MKS units
     printf("Write MATLAB file\n");
-    mf = openmatfile("Lab8.mat", &err);
+    mf = openmatfile("SEA.mat", &err);
     if (!mf)
         printf("Can't open mat file error %d\n", err);
     for (j = 0; j < nsamp; j++)

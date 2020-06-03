@@ -343,7 +343,7 @@ double pos(MyRio_Encoder *channel)
 *--------------------------------------------------------------*/
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1)
 {
-    return ((pos(ch1) / tpr1) - (pos(ch0) / tpr0)); // (rev)
+    return ((pos(ch0) / tpr0) - (pos(ch1) / tpr1)); // (rev)
 }
 
 int main(int argc, char **argv)

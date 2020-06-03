@@ -87,16 +87,16 @@ inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
 % 10% OS -> zeta = 0.6
-% % zeta = .6; % Garbini's recommendation
-% zeta = .6;
-% Ts = 0.1;
-% zc = 30;
-% 
-% [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
-%     zc, inner_loop_plant, name);
+% zeta = .6; % Garbini's recommendation
+zeta = .6;
+Ts = 0.1;
+zc = 30;
 
-opt = pidtuneOptions("PhaseMargin", 80); % Default: 60 deg
-inner_loop_controller = pidtune(inner_loop_plant, "PIDF")%, 40, opt);
+[~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
+    zc, inner_loop_plant, name);
+% 
+% opt = pidtuneOptions("PhaseMargin", 80); % Default: 60 deg
+% inner_loop_controller = pidtune(inner_loop_plant, "PDF")%, 40, opt);
 
 % evaluate inner loop controller
 % .1 N-m reference step

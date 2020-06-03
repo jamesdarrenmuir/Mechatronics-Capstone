@@ -353,7 +353,7 @@ int main(int argc, char **argv)
     #endif /* DOUBLE_LOOP */
 
     vmax = 10.;
-    amax = 10.;
+    amax = 2.;
     dwell = 5.0;
     seg mySegs[4] = {// revolutions
                      {0.25, vmax, amax, dwell},

@@ -34,7 +34,7 @@
 #endif /* DOUBLE_LOOP */
 
 #ifdef LOGGING
-#define ntot 5000 // number of data points to save
+#define ntot 2000 // number of data points to save
 #endif /* LOGGING */
 
 extern NiFpga_Session myrio_session;
@@ -97,13 +97,8 @@ void *Timer_Irq_Thread(void *resource)
     uint32_t irqAssert = 0;
     #ifdef LOGGING
     MATFILE *mf;
-    int j, err;
-    int isave = 0;
-    double t[ntot]; // time vector
-    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot];
-    #ifndef SINGLE_LOOP
-    double TsRef[ntot], TsAct[ntot];
-    #endif /* !SINGLE_LOOP */
+    int j, err, isave = 0;
+    double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot], t[ntot]; // time vector
     #endif /* LOGGING */
     MyRio_Aio CI0, CO0;
     MyRio_Encoder encC0;
@@ -231,10 +226,8 @@ void *Timer_Irq_Thread(void *resource)
                 P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
                 TM[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
                 P1Act[isave] = *P1_act * 2 * M_PI; // rad
-                #ifndef SINGLE_LOOP
-                TsRef[isave] = *Ts_ref; // N-m
                 TsAct[isave] = *Ts_act; // N-m
-                #endif /* !SINGLE_LOOP */
+                TsRef[isave] = *Ts_ref; // N-m
                 isave++;
             }
             #endif /* LOGGING */

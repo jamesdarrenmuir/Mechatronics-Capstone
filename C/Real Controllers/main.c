@@ -2,7 +2,7 @@
 
 // #define SINGLE_LOOP
 // #define DOUBLE_LOOP
-// #define TORQUE
+#define TORQUE
 
 /*
  * Copyright (c) 2015 Prof Garbini
@@ -106,9 +106,9 @@ void *Timer_Irq_Thread(void *resource)
     double *P2_act = &((threadResource->a_table + 1)->value);
     double *VDA_out_mV = &((threadResource->a_table + 2)->value); // mV
     double *P1_act = &((threadResource->a_table + 3)->value);
+    double *Ts_act = &((threadResource->a_table + 4)->value);
     #ifndef SINGLE_LOOP
-    double *Ts_ref = &((threadResource->a_table + 4)->value);
-    double *Ts_act = &((threadResource->a_table + 5)->value);
+    double *Ts_ref = &((threadResource->a_table + 5)->value);
     #endif /* !SINGLE_LOOP */
 
     int iseg = -1, itime = -1, nsamp, done;
@@ -364,10 +364,10 @@ int main(int argc, char **argv)
         {"P2_act: rev  ", 0, 0.0}, // output pulley actual position
         {"VDA_out: mV  ", 0, 0.0}, // myRIO output voltage
         {"P1_act: rev  ", 0, 0.0} // motor pulley actual position
-        #ifndef SINGLE_LOOP
-        ,{"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
-        #endif /* !SINGLE_LOOP */
         {"Ts_act: N-m  ", 0, 0.0}  // spring actual torque
+        #ifndef SINGLE_LOOP
+        ,{"Ts_ref: N-m  ", 0, 0.0} // spring reference torque
+        #endif /* !SINGLE_LOOP */
         };
     #ifdef SINGLE_LOOP
     int table_entries = 5;

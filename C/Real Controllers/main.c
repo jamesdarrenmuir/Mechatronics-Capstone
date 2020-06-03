@@ -28,7 +28,7 @@
 #define Tmin -0.5   // min motor output torque: N-m
 #endif /* DOUBLE_LOOP */
 
-#define ntot 6000 // number of data points to save
+#define ntot 5000 // number of data points to save
 
 extern NiFpga_Session myrio_session;
 

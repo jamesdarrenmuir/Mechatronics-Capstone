@@ -63,7 +63,7 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 
 % evaluate single loop controller
 % 45 deg step
-[info, bandwidth] = evaluate_controller(name, single_loop_controller, ...
+[info, bw] = evaluate_controller(name, single_loop_controller, ...
     single_loop_plant, pi/4, 1000, "Position (rad)", "Voltage (V)");
 
 % visualize controller
@@ -87,13 +87,16 @@ inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
 % 10% OS -> zeta = 0.6
-% zeta = .6; % Garbini's recommendation
-zeta = .6;
-Ts = 0.1;
-zc = 30;
+% % zeta = .6; % Garbini's recommendation
+% zeta = .6;
+% Ts = 0.1;
+% zc = 30;
+% 
+% [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
+%     zc, inner_loop_plant, name);
 
-[~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
-    zc, inner_loop_plant, name);
+opt = pidtuneOptions("PhaseMargin", 80); % Default: 60 deg
+inner_loop_controller = pidtune(inner_loop_plant, "PIDF")%, 40, opt);
 
 % evaluate inner loop controller
 % .1 N-m reference step

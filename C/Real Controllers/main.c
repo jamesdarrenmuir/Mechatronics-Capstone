@@ -111,7 +111,7 @@ void *Timer_Irq_Thread(void *resource)
     double *Ts_ref = &((threadResource->a_table + 5)->value);
     #endif /* !SINGLE_LOOP */
 
-    int iseg = -1, itime = -1, nsamp, done;
+    int iseg = -1, itime = -1, nsamp, done, data_collected = 0;
     seg *mySegs = threadResource->profile;
     int nseg = threadResource->nseg;
 
@@ -168,8 +168,9 @@ void *Timer_Irq_Thread(void *resource)
                           Ts_ref); // reference torque (N-m)
             #endif /* TORQUE */
 
-            if (done)
+            if (done && !data_collected)
                 nsamp = done;
+                data_collected = 1;
 
             // current positions
             *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)

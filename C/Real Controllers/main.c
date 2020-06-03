@@ -170,6 +170,7 @@ void *Timer_Irq_Thread(void *resource)
 
             if (done)
                 nsamp = done;
+                printf("nsamp (inside timer thread): %g\n",(double) nsamp);
 
             // current positions
             *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)

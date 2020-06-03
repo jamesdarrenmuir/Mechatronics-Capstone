@@ -15,7 +15,7 @@ Rg = 16; % gearbox ratio, 16:1 speed reduction
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox
 
 % shaft couplers
-Js = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
+Jsc = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
 
 % encoder
 % 500 windows * 4 ticks per window for a quadrature encoder
@@ -46,8 +46,10 @@ s = tf("s");
 K = K1 + K2;
 J1 = Jm + Jg;
 J2 = Jp2 + JL;
-J3 = Jp1 + Js;
+J3 = Jp1 + Jsc;
 %% single loop controller
+% simulations show controller is unstable
+% 
 name = 'Single Loop';
 % set up plant
 single_loop_plant = Kvi * Kt * K*R1*R2*Rg ... 
@@ -78,21 +80,18 @@ inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
 % 10% OS -> zeta = 0.6
-zeta = .6; % Garbini's recommendation
-% zeta = .33;
-Ts = 0.03; % (s) Garbini's recommendation
-% Ts = 0.08;
-wn = 4 / (Ts * zeta); % (rad/s)
-
-% z = 80; % Garbini's recommendation
-zc = 120;
+% zeta = .6; % Garbini's recommendation
+zeta = .6;
+Ts = 0.1;
+zc = 30;
 
 [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
     zc, inner_loop_plant, name);
 
 % evaluate inner loop controller
+% .1 N-m reference step
 evaluate_controller(name, inner_loop_controller, ...
-    inner_loop_plant, MCOT, .1, "Torque (N-m)", "Voltage (V)");
+    inner_loop_plant, .1, .1, "Torque (N-m)", "Voltage (V)");
 %% outer loop controller
 name = 'Outer Loop';
 % set up plant
@@ -140,6 +139,7 @@ function [pc, Kc, controller] = design_lead_compensator(zeta, Ts, zc, plant, nam
     rlocus(open_loop_tf)
     hold on
     xline(-zeta*wn, 'k:')
+    % grid on % sgrid is better
     sgrid(zeta,0)
     h2 = plot([tp conj(tp)], 'kx', 'MarkerSize',12);
     r = rlocus(open_loop_tf, 1);

@@ -195,7 +195,7 @@ void *Timer_Irq_Thread(void *resource)
 
             // inner loop (torque control)
             *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
-            Ts_err = (*Ts_act - *Ts_ref); // torque error (N-m)
+            Ts_err = (*Ts_ref - *Ts_act); // torque error (N-m)
 
             VDAout = cascade(Ts_err,
                              inner_loop_controller,
@@ -207,7 +207,7 @@ void *Timer_Irq_Thread(void *resource)
             #ifdef TORQUE
             // torque control
             *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
-            Ts_err = (*Ts_act - *Ts_ref); // torque error (N-m)
+            Ts_err = (*Ts_ref - *Ts_act); // torque error (N-m)
 
             VDAout = cascade(Ts_err,
                              inner_loop_controller,

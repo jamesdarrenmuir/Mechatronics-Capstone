@@ -174,7 +174,7 @@ void *Timer_Irq_Thread(void *resource)
             // outer loop (position control)
             P2_err = (*P2_ref - *P2_act) * 2 * M_PI; // error signal revs to (radians)
 
-            *Ts_ref = cascade(P2_err, outer_loop_controller, outer_loop_controller_ns, Tmax, Tmin);
+            *Ts_ref = cascade(P2_err, outer_loop_controller, outer_loop_controller_ns, Tmin, Tmax);
 
             // inner loop (torque control)
             *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)

@@ -124,7 +124,7 @@ T = 0.005; %(s)
 
 Krot = K*R2^2;
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
-dlc2header(fileID, inner_loop_controller, outer_loop_controller, T, Krot, Kvi, Kt, BDI_per_rev)
+dlc2header(fileID, inner_loop_controller, outer_loop_controller, T, Krot, Kvi, Kt, BDI_per_rev, Rg)
 %% close all open files
 fclose('all');
 %% functions

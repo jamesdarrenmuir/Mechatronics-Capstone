@@ -2,6 +2,7 @@
     double         Kt = 0.021400;              // motor torque constant (N-m/A)
     double         Kvi = 0.410000;              // amplifier constant (A/V)
     double         BDI_per_rev = 2000.000000;              // (BDI/rev)
+    double         Rg = 16.000000;              // gear ratio
     uint32_t    timeoutValue = 5000;      // time interval - us; f_s = 200 Hz
     int         inner_loop_controller_ns = 1;              // number of sections
     static	struct	biquad inner_loop_controller[]={   // define the array of floating point biquads

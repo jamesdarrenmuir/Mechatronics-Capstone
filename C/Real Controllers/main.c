@@ -379,15 +379,29 @@ int main(int argc, char **argv)
     int table_entries = 6;
     #endif /* SINGLE_LOOP */
 
-    vmax = 10.;
-    amax = 2.;
-    dwell = 5.0;
-    seg mySegs[4] = {// revolutions
+    #ifndef TORQUE
+    vmax = 10.; // (rev/s)
+    amax = 2.; // (rev/s^2)
+    dwell = 5.0; // (s)
+    seg mySegs[4] = {// (rev)
                      {0.25, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell},
                      {-0.25, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell}};
     nseg = 4;
+    #endif /* TORQUE */
+
+    #ifdef TORQUE
+    vmax = 0.25; // (N-m/s)
+    amax = 2.; // (N-m/s^2)
+    dwell = 1.0; // (s)
+    seg mySegs[4] = {// (N-m)
+                     {0.25, vmax, amax, dwell},
+                     {0.0, vmax, amax, dwell},
+                     {-0.25, vmax, amax, dwell},
+                     {0.0, vmax, amax, dwell}};
+    nseg = 4;
+    #endif /* TORQUE */
 
     /*  registers corresponding to the IRQ channel     */
     irqTimer0.timerWrite = IRQTIMERWRITE;

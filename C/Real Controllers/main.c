@@ -130,7 +130,7 @@ void *Timer_Irq_Thread(void *resource)
     conC_Encoder_initialize(myrio_session, &encC0, 0); // initialize encoder 0
     conC_Encoder_initialize(myrio_session, &encC1, 1); // initialize encoder 1
 
-    // printf("timeoutValue %g\n",(double)timeoutValue); // debug output
+    printf("timeoutValue %g\n",(double)timeoutValue); // debug output
 
     while (threadResource->irqThreadRdy)
     {
@@ -156,8 +156,6 @@ void *Timer_Irq_Thread(void *resource)
                           &itime,
                           T,
                           P2_ref); // reference position (revs)
-            if (done)
-                nsamp = done;
             #endif /* !TORQUE */
 
             #ifdef TORQUE
@@ -168,9 +166,10 @@ void *Timer_Irq_Thread(void *resource)
                           &itime,
                           T,
                           Ts_ref); // reference torque (N-m)
+            #endif /* TORQUE */
+
             if (done)
                 nsamp = done;
-            #endif /* TORQUE */
 
             // current positions
             *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)
@@ -231,7 +230,7 @@ void *Timer_Irq_Thread(void *resource)
         }
     }
     Aio_Write(&CO0, 0.0); // stop motor
-    // printf("nsamp: %g\n",(double) nsamp); // debug print statement
+    printf("nsamp: %g\n",(double) nsamp); // debug print statement
     //---Save Data to a .mat file in MKS units
     printf("Write MATLAB file\n");
     mf = openmatfile("SEA.mat", &err);

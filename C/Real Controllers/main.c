@@ -1,7 +1,8 @@
 // Single/Double Loop Controller Design Switch
 
-#define SINGLE_LOOP
+// #define SINGLE_LOOP
 // #define DOUBLE_LOOP
+#define TORQUE
 
 /*
  * Copyright (c) 2015 Prof Garbini
@@ -22,10 +23,10 @@
 
 #define VDAmax +7.5 // max D/A converter voltage: V
 #define VDAmin -7.5 // min D/A converter voltage: V
-#ifdef DOUBLE_LOOP
+#ifndef SINGLE_LOOP
 #define Tmax +0.5   // max motor output torque: N-m
 #define Tmin -0.5   // min motor output torque: N-m
-#endif /* DOUBLE_LOOP */
+#endif /* SINGLE_LOOP */
 
 #define ntot 5000 // number of data points to save
 
@@ -67,9 +68,9 @@ struct biquad
 #include "single_loop_controller.h"
 #endif /* SINGLE_LOOP */
 
-#ifdef DOUBLE_LOOP
+#ifndef SINGLE_LOOP
 #include "double_loop_controller.h"
-#endif /* DOUBLE_LOOP */
+#endif /* SINGLE_LOOP */
 
 // Prototypes
 void *Timer_Irq_Thread(void *resource);
@@ -92,9 +93,9 @@ void *Timer_Irq_Thread(void *resource)
     MyRio_Encoder encC0;
     MyRio_Encoder encC1;
     double P2Ref[ntot], P2Act[ntot], TM[ntot], P1Act[ntot];
-    #ifdef DOUBLE_LOOP
+    #ifndef SINGLE_LOOP
     double TsRef[ntot], TsAct[ntot];
-    #endif /* DOUBLE_LOOP */
+    #endif /* SINGLE_LOOP */
 
     int isave = 0;
     double VDAout;
@@ -105,10 +106,10 @@ void *Timer_Irq_Thread(void *resource)
     double *P2_act = &((threadResource->a_table + 1)->value);
     double *VDA_out_mV = &((threadResource->a_table + 2)->value); // mV
     double *P1_act = &((threadResource->a_table + 3)->value);
-    #ifdef DOUBLE_LOOP
+    #ifndef SINGLE_LOOP
     double *Ts_ref = &((threadResource->a_table + 4)->value);
     double *Ts_act = &((threadResource->a_table + 5)->value);
-    #endif /* DOUBLE_LOOP */
+    #endif /* SINGLE_LOOP */
 
     int iseg = -1, itime = -1, nsamp, done;
     seg *mySegs = threadResource->profile;
@@ -117,9 +118,9 @@ void *Timer_Irq_Thread(void *resource)
     double T; // time (s)
     double P2_err; // output position error
 
-    #ifdef DOUBLE_LOOP
+    #ifndef SINGLE_LOOP
     double Ts_err; // torque error
-    #endif /* DOUBLE_LOOP */
+    #endif /* SINGLE_LOOP */
 
     //  Initialize interfaces before allowing IRQ
     AIO_initialize(&CI0, &CO0);                        // initialize analog I/O
@@ -145,6 +146,7 @@ void *Timer_Irq_Thread(void *resource)
 
         if (irqAssert)
         {
+            #ifndef TORQUE
             // compute the next profile value
             done = Sramps(mySegs,
                           nseg,
@@ -154,6 +156,19 @@ void *Timer_Irq_Thread(void *resource)
                           P2_ref); // reference position (revs)
             if (done)
                 nsamp = done;
+            #endif /* TORQUE */
+
+            #ifdef TORQUE
+            // compute the next profile value
+            done = Sramps(mySegs,
+                          nseg,
+                          &iseg,
+                          &itime,
+                          T,
+                          Ts_ref); // reference torque (N-m)
+            if (done)
+                nsamp = done;
+            #endif /* TORQUE */
 
             *P2_act = pos(&encC1) / BDI_per_rev;  // current position BDI to (revs)
             *P1_act = pos(&encC0) / BDI_per_rev;  // current position BDI to (revs)
@@ -186,6 +201,18 @@ void *Timer_Irq_Thread(void *resource)
                              VDAmin,
                              VDAmax);       // Vda
             #endif /* DOUBLE_LOOP */
+
+            #ifdef TORQUE
+            // torque control
+            *Ts_act = diff(&encC0, &encC1, BDI_per_rev, BDI_per_rev) * 2 * M_PI * Krot;      // current output torque (N-m)
+            Ts_err = (*Ts_act - *Ts_ref); // torque error (N-m)
+
+            VDAout = cascade(Ts_err,
+                             inner_loop_controller,
+                             inner_loop_controller_ns,
+                             VDAmin,
+                             VDAmax);       // Vda
+            #endif /* TORQUE */
             
             *VDA_out_mV = trunc(1000. * VDAout); // table show values
             Aio_Write(&CO0, VDAout);        // output control value
@@ -197,10 +224,10 @@ void *Timer_Irq_Thread(void *resource)
                 P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
                 TM[isave] = VDAout * Kt * Kvi;  // N-m	--- NEW AMPLIFIER
                 P1Act[isave] = *P1_act * 2 * M_PI; // rad
-                #ifdef DOUBLE_LOOP
+                #ifndef SINGLE_LOOP
                 TsRef[isave] = *Ts_ref; // N-m
                 TsAct[isave] = *Ts_act; // N-m
-                #endif /* DOUBLE_LOOP */
+                #endif /* SINGLE_LOOP */
                 isave++;
             }
             Irq_Acknowledge(irqAssert); /* Acknowledge the IRQ(s) the assertion. */
@@ -226,12 +253,12 @@ void *Timer_Irq_Thread(void *resource)
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "single_loop_controller", (double *)single_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* SINGLE_LOOP */
-    #ifdef DOUBLE_LOOP
+    #ifndef SINGLE_LOOP
     err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "inner_loop_controller", (double *)inner_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     err = matfile_addmatrix(mf, "outer_loop_controller", (double *)outer_loop_controller, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
-    #endif /* DOUBLE_LOOP */
+    #endif /* SINGLE_LOOP */
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
 
@@ -340,17 +367,17 @@ int main(int argc, char **argv)
         {"P2_act: rev  ", 0, 0.0}, // output pulley actual position
         {"VDA_out: mV  ", 0, 0.0}, // myRIO output voltage
         {"P1_act: rev  ", 0, 0.0} // motor pulley actual position
-        #ifdef DOUBLE_LOOP
+        #ifndef SINGLE_LOOP
         ,{"Ts_ref: N-m  ", 0, 0.0}, // spring reference torque
         {"Ts_act: N-m  ", 0, 0.0}  // spring actual torque
-        #endif /* DOUBLE_LOOP */
+        #endif /* SINGLE_LOOP */
         };
     #ifdef SINGLE_LOOP
     int table_entries = 4;
     #endif /* SINGLE_LOOP */
-    #ifdef DOUBLE_LOOP
+    #ifndef SINGLE_LOOP
     int table_entries = 6;
-    #endif /* DOUBLE_LOOP */
+    #endif /* SINGLE_LOOP */
 
     vmax = 10.;
     amax = 2.;

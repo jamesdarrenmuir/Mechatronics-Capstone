@@ -58,17 +58,10 @@ typedef struct
 
 struct biquad
 { // second-order section
-    double b0;
-    double b1;
-    double b2; // numerator
-    double a0;
-    double a1;
-    double a2; // denominator
-    double x0;
-    double x1;
-    double x2; // input
-    double y1;
-    double y2; // output
+    double b0; double b1; double b2; // numerator
+    double a0; double a1; double a2; // denominator
+    double x0; double x1; double x2; // input
+    double y1; double y2; // output
 };
 
 #ifdef SINGLE_LOOP
@@ -82,9 +75,8 @@ struct biquad
 // Prototypes
 void *Timer_Irq_Thread(void *resource);
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
-double pos(MyRio_Encoder *channel);
+double pos(MyRio_Encoder *channel, int *startP);
 double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1);
-//TODO: check if Sramps and conC_Encoder_initialize prototype is needed
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
 NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
 
@@ -101,8 +93,8 @@ void *Timer_Irq_Thread(void *resource)
     double P2Ref[ntot], P2Act[ntot], TMG[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot], t[ntot]; // time vector
     #endif /* LOGGING */
     MyRio_Aio CI0, CO0;
-    MyRio_Encoder encC0;
-    MyRio_Encoder encC1;
+    MyRio_Encoder encC1, encC2;
+    int startP1, startP2;
 
     double VDAout;
 
@@ -119,20 +111,20 @@ void *Timer_Irq_Thread(void *resource)
     seg *mySegs = threadResource->profile;
     int nseg = threadResource->nseg;
 
-    double T; // time (s)
+    double T; // sample period (s)
     #ifndef TORQUE
-    double P2_err; // output position error
+    double P2_err; // output position error (rad)
     #endif /* !TORQUE */
 
     #ifndef SINGLE_LOOP
-    double Ts_err; // torque error
+    double Ts_err; // torque error (N-m)
     #endif /* !SINGLE_LOOP */
 
     //  Initialize interfaces before allowing IRQ
     AIO_initialize(&CI0, &CO0);                        // initialize analog I/O
     Aio_Write(&CO0, 0.0);                              // stop motor
-    conC_Encoder_initialize(myrio_session, &encC0, 0); // initialize encoder 0
-    conC_Encoder_initialize(myrio_session, &encC1, 1); // initialize encoder 1
+    conC_Encoder_initialize(myrio_session, &encC1, 0); // initialize encoder 0
+    conC_Encoder_initialize(myrio_session, &encC2, 1); // initialize encoder 1
 
     printf("timeoutValue %g\n",(double)timeoutValue); // debug output
 
@@ -177,11 +169,11 @@ void *Timer_Irq_Thread(void *resource)
                 // printf("nsamp (inside timer thread): %g\n",(double) nsamp); //DEBUG
 
             // current positions
-            *P2_act = pos(&encC1) / BPRL;  // current position BDI to (revs)
-            *P1_act = pos(&encC0) / BPRM;  // current position BDI to (revs)
+            *P2_act = pos(&encC2, &startP2) / BPRL;  // current position BDI to (revs)
+            *P1_act = pos(&encC1, &startP1) / BPRM / Rg;  // current position BDI to (revs)
           
             // current output torque (N-m)
-            *Ts_act = diff(&encC0, &encC1, BPRM * Rg, BPRL) * 2 * M_PI * Krot;
+            *Ts_act = (*P1_act - *P2_act) * 2 * M_PI * Krot;
 
             #ifndef TORQUE
              // compute position error
@@ -312,45 +304,25 @@ double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax)
  Function pos
 	Purpose		Read the encoder counter, compute the current
 			estimate of the motor position.
-	Parameters:	encoder channel
+	Parameters:
+        - channel: the encoder
+        - startP: the starting position of the encoder
 	Returns: 	encoder position (BDI)
 *--------------------------------------------------------------*/
-double pos(MyRio_Encoder *channel)
-{
-    int currentP; // current position (sizeof(int) = 4 bytes
+double	pos(MyRio_Encoder *channel, int *startP) {
+	static	int	deltaP;
+	static	int currentP;		// current position (sizeof(int) = 4 bytes
+	double	position;			// speed estimate
+	static  int		first = 1;			// first time calling vel();
 
-    static int startP;
-    static int first = 1; // first time calling pos();
-
-    int deltaP;
-    double position; // position estimate
-
-    currentP = Encoder_Counter(channel);
-    // initialization
-    if (first)
-    {
-        startP = currentP;
-        first = 0;
-    };
-
-    deltaP = currentP - startP;
-    position = (double)deltaP; // BDI - displacement from starting position
-    return position;
-}
-
-/*--------------------------------------------------------------
- Function diff
-	Purpose		Return the difference between the angles of the two shafts
-	Parameters:	
-        ch0 - encoder channel 0
-        ch1 - encoder channel 1
-        tpr0 - ticks per revolution for encoder 0
-        tpr1 - ticks per revolution for encoder 1
-	Returns: angle difference (rev)
-*--------------------------------------------------------------*/
-double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1)
-{
-    return ((pos(ch0) / tpr0) - (pos(ch1) / tpr1)); // (rev)
+	currentP = Encoder_Counter(channel);
+	if(first)  {
+		*startP = currentP;
+		first = 0;
+	};
+	deltaP = currentP - *startP;
+	position = (double)deltaP;			// BDI - displacement from starting position
+	return	position;
 }
 
 int main(int argc, char **argv)
@@ -359,8 +331,6 @@ int main(int argc, char **argv)
     MyRio_IrqTimer irqTimer0;
     ThreadResource irqThread0;
     pthread_t thread;
-    uint32_t timeoutValue; /* time interval - us */
-    double bti = 0.5;
     double vmax, amax, dwell;
     int nseg;
 
@@ -410,7 +380,6 @@ int main(int argc, char **argv)
     /*  registers corresponding to the IRQ channel     */
     irqTimer0.timerWrite = IRQTIMERWRITE;
     irqTimer0.timerSet = IRQTIMERSETTIME;
-    timeoutValue = bti * 1000.;
 
     /* Open the myRIO NiFpga Session. */
     status = MyRio_Open();

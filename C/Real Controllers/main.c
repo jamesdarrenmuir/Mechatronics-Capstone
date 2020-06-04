@@ -2,7 +2,7 @@
 
 // #define SINGLE_LOOP
 // #define DOUBLE_LOOP
-#define TORQUE
+// #define TORQUE
 
 //TODO: fix logging code to stop segfaults
 // #define LOGGING
@@ -76,7 +76,6 @@ struct biquad
 void *Timer_Irq_Thread(void *resource);
 double cascade(double xin, struct biquad *fa, int ns, double ymin, double ymax);
 double pos(MyRio_Encoder *channel, int *startP);
-double diff(MyRio_Encoder *ch0, MyRio_Encoder *ch1, double tpr0, double tpr1);
 int Sramps(seg *segs, int nseg, int *iseg, int *itime, double T, double *xa);
 NiFpga_Status conC_Encoder_initialize(NiFpga_Session myrio_session, MyRio_Encoder *encCp, int iE);
 

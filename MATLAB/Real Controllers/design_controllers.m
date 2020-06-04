@@ -138,11 +138,13 @@ figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller');
 lsim(feedback(series(inner_loop_controller, inner_loop_plant),1), wave, ts)
 daspect([1 1 1])
 ylim([-.5 .5])
+ylabel('Torque (N-m)')
 % outer loop
 figure('NumberTitle', 'off', 'Name', 'Outer Loop Controller');
 lsim(feedback(series(outer_loop_controller, outer_loop_plant),1), wave, ts)
 daspect([1 1 1])
 ylim([-.5 .5])
+ylabel('Position (rad)')
 %% close all open files
 fclose('all');
 %% functions

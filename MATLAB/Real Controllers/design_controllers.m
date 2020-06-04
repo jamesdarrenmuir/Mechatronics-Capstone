@@ -127,6 +127,22 @@ evaluate_controller(name, outer_loop_controller, ...
 %% save double loop controller as .h file
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
+%% more evaluation of double loop controller
+clamp = @(x, mn, mx) min(max(x,mn),mx); % x vector, minimum, maximum
+tmax = 8;
+ts = 0:.01:tmax;
+T = 4; %(s)
+wave = clamp(.5*sawtooth(ts*2*pi/T, 0.5), -.2, .2);
+% inner loop
+figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller');
+lsim(feedback(series(inner_loop_controller, inner_loop_plant),1), wave, ts)
+daspect([1 1 1])
+ylim([-.5 .5])
+% outer loop
+figure('NumberTitle', 'off', 'Name', 'Outer Loop Controller');
+lsim(feedback(series(outer_loop_controller, outer_loop_plant),1), wave, ts)
+daspect([1 1 1])
+ylim([-.5 .5])
 %% close all open files
 fclose('all');
 %% functions

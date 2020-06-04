@@ -130,9 +130,9 @@ ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'o
 %% more evaluation of double loop controller
 clamp = @(x, mn, mx) min(max(x,mn),mx); % x vector, minimum, maximum
 tmax = 8;
-ts = 0:.01:tmax;
-T = 4; %(s)
-wave = clamp(.5*sawtooth(ts*2*pi/T, 0.5), -.2, .2);
+ts = 0:T:tmax;
+period = 4; %(s)
+wave = clamp(.5*sawtooth(ts*2*pi/period, 0.5), -.2, .2);
 % inner loop
 figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller');
 lsim(feedback(series(inner_loop_controller, inner_loop_plant),1), wave, ts)

@@ -128,7 +128,7 @@ outer_loop_plant = series(feedback(series(inner_loop_controller, ...
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 % outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
 %TODO: try decreasing rise time (increase wc) to get better (faster)
-outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 8, opt);
+outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 10, opt);
 
 % evaluate outer loop controller
 evaluate_controller(name, outer_loop_controller, ...

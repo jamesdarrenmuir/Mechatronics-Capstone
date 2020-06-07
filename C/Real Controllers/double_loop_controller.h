@@ -7,9 +7,9 @@
     uint32_t    timeoutValue = 2500;      // time interval - us; f_s = 400 Hz
     int         ilc_ns = 1;              // number of sections
     static	struct	biquad ilc[]={   // define the array of floating point biquads
-        {4.185550e+02, -3.764789e+02, 0.000000e+00, 1.000000e+00, -4.223360e-01, 0.000000e+00, 0, 0, 0, 0, 0}
+        {1.396487e+02, -1.316616e+02, 0.000000e+00, 1.000000e+00, -5.661051e-01, 0.000000e+00, 0, 0, 0, 0, 0}
         };
     int         olc_ns = 1;              // number of sections
     static	struct	biquad olc[]={   // define the array of floating point biquads
-        {5.828547e-01, -1.163823e+00, 5.809696e-01, 1.000000e+00, -1.908969e+00, 9.089688e-01, 0, 0, 0, 0, 0}
+        {2.391356e-01, -4.777649e-01, 2.386295e-01, 1.000000e+00, -1.946921e+00, 9.469209e-01, 0, 0, 0, 0, 0}
         };

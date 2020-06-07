@@ -92,11 +92,16 @@ inner_loop_plant = Kvi * Kt * K*R1*R2*Rg/(K*R1^2+(J3+J1*Rg^2)*s^2);
 inner_loop_plant = minreal(inner_loop_plant);
 
 % design controller
+
 % 10% OS -> zeta = 0.6
 % zeta = .6; % Garbini's recommendation
 zeta = .6;
-Ts = 0.05;
-zc = 60;
+Ts = 0.1;
+zc = 30;
+%TODO: try making the inner loop more agressive so torque tracking works
+%even when the output isn't fixed.
+% Ts = 0.05;
+% zc = 60;
 
 [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
     zc, inner_loop_plant, name);
@@ -116,9 +121,12 @@ outer_loop_plant = series(feedback(series(inner_loop_controller, ...
     inner_loop_plant), 1), Z2);
 
 % design controller
+%reference tracking
 % output torque < 0.5 N-m
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 7, opt);
+outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
+%TODO: try decreasing rise time (increase wc) to get better (faster)
+% outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 7, opt);
 
 % evaluate outer loop controller
 evaluate_controller(name, outer_loop_controller, ...

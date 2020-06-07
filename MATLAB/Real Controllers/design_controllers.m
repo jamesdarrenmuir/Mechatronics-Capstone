@@ -47,7 +47,9 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 
 % discretization
-T = 0.0025; %(s)
+T = 0.005; %(s)
+%TODO: make this lower so faster controllers work
+% T = 0.0025; %(s)
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;

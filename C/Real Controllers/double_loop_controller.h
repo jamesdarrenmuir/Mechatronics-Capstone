@@ -4,12 +4,12 @@
     double         BPRM = 2000.000000;              // (BDI/rev)
     double         BPRL = 8000.000000;              // (BDI/rev)
     double         Rg = 16.000000;              // gear ratio
-    uint32_t    timeoutValue = 2500;      // time interval - us; f_s = 400 Hz
+    uint32_t    timeoutValue = 5000;      // time interval - us; f_s = 200 Hz
     int         ilc_ns = 1;              // number of sections
     static	struct	biquad ilc[]={   // define the array of floating point biquads
-        {1.396487e+02, -1.316616e+02, 0.000000e+00, 1.000000e+00, -5.661051e-01, 0.000000e+00, 0, 0, 0, 0, 0}
+        {1.396487e+02, -1.271400e+02, 0.000000e+00, 1.000000e+00, -3.204750e-01, 0.000000e+00, 0, 0, 0, 0, 0}
         };
     int         olc_ns = 1;              // number of sections
     static	struct	biquad olc[]={   // define the array of floating point biquads
-        {2.391356e-01, -4.777649e-01, 2.386295e-01, 1.000000e+00, -1.946921e+00, 9.469209e-01, 0, 0, 0, 0, 0}
+        {2.391356e-01, -4.772851e-01, 2.381505e-01, 1.000000e+00, -1.896659e+00, 8.966592e-01, 0, 0, 0, 0, 0}
         };

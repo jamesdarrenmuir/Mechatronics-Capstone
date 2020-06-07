@@ -4,7 +4,6 @@
 // #define DOUBLE_LOOP
 // #define TORQUE
 
-//TODO: fix logging code to stop segfaults
 // #define LOGGING
 
 /*

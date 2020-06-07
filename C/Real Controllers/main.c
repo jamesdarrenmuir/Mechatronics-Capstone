@@ -243,15 +243,15 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "motor_torque", TMG, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "slc", (double *)slc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* SINGLE_LOOP */
     #ifndef SINGLE_LOOP
-    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "ilc", (double *)ilc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     err = matfile_addmatrix(mf, "olc", (double *)olc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* !SINGLE_LOOP */
-    err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     matfile_close(mf);
     #endif /* LOGGING */
 

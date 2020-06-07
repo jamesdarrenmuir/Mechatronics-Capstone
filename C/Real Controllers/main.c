@@ -33,7 +33,7 @@
 #endif /* DOUBLE_LOOP */
 
 #ifdef LOGGING
-#define ntot 2000 // number of data points to save
+#define ntot 3500 // number of data points to save
 #endif /* LOGGING */
 
 extern NiFpga_Session myrio_session;
@@ -212,7 +212,7 @@ void *Timer_Irq_Thread(void *resource)
             {
                 P2Act[isave] = *P2_act * 2 * M_PI; // radians
                 P2Ref[isave] = *P2_ref * 2 * M_PI;  // radians
-                TMG[isave] = VDAout * Kt * Kvi * Rg;  // N-m	--- NEW AMPLIFIER
+                TMG[isave] = VDAout * Kt * Kvi * Rg;  // N-m
                 P1Act[isave] = *P1_act * 2 * M_PI; // rad
                 TsAct[isave] = *Ts_act; // N-m
                 TsRef[isave] = *Ts_ref; // N-m

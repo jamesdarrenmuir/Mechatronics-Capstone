@@ -96,7 +96,7 @@ inner_loop_plant = minreal(inner_loop_plant);
 % zeta = .6; % Garbini's recommendation
 zeta = .6;
 Ts = 0.05;
-zc = 30;
+zc = 60;
 
 [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
     zc, inner_loop_plant, name);

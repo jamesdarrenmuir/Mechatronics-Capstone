@@ -25,8 +25,12 @@
 #endif /* LOGGING */
 #include "math.h"
 
-#define VDAmax +7.5 // max D/A converter voltage: V
-#define VDAmin -7.5 // min D/A converter voltage: V
+// Absolute limits from Prof. Garbini
+// #define VDAmax +7.5 // max D/A converter voltage: V
+// #define VDAmin -7.5 // min D/A converter voltage: V
+// Our limits to avoid stretching fishing line
+#define VDAmax +5.0 // max D/A converter voltage: V
+#define VDAmin -5.0 // min D/A converter voltage: V
 #ifdef DOUBLE_LOOP
 #define Tmax +0.5   // max motor output torque: N-m
 #define Tmin -0.5   // min motor output torque: N-m

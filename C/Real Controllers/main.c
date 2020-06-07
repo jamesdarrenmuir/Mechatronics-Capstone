@@ -354,13 +354,13 @@ int main(int argc, char **argv)
     #endif /* !SINGLE_LOOP */
 
     #ifndef TORQUE
-    vmax = 0.25; // (rev/s)
-    amax = 2.; // (rev/s^2)
-    dwell = 2.0; // (s)
+    vmax = 0.1; // (rev/s)
+    amax = 1.0; // (rev/s^2)
+    dwell = 4.0; // (s)
     seg mySegs[4] = {// (rev)
-                     {0.25, vmax, amax, dwell},
+                     {0.15, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell},
-                     {-0.25, vmax, amax, dwell},
+                     {-0.15, vmax, amax, dwell},
                      {0.0, vmax, amax, dwell}};
     nseg = 4;
     #endif /* !TORQUE */

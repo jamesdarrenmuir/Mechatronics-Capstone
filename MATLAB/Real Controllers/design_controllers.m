@@ -47,7 +47,7 @@ Kvi = 0.41; % (A/V) amplifier constant (from ME 477 lab)
 maximum_output_voltage = 10; % (V) maximum output voltage of myRIO
 
 % discretization
-T = 0.005; %(s)
+T = 0.0025; %(s)
 %% transfer function set up
 s = tf("s");
 K = K1 + K2;
@@ -95,7 +95,7 @@ inner_loop_plant = minreal(inner_loop_plant);
 % 10% OS -> zeta = 0.6
 % zeta = .6; % Garbini's recommendation
 zeta = .6;
-Ts = 0.1;
+Ts = 0.05;
 zc = 30;
 
 [~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...

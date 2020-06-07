@@ -11,5 +11,5 @@
         };
     int         olc_ns = 1;              // number of sections
     static	struct	biquad olc[]={   // define the array of floating point biquads
-        {2.391356e-01, -4.772851e-01, 2.381505e-01, 1.000000e+00, -1.896659e+00, 8.966592e-01, 0, 0, 0, 0, 0}
+        {7.167611e-01, -1.428076e+00, 7.113257e-01, 1.000000e+00, -1.826224e+00, 8.262243e-01, 0, 0, 0, 0, 0}
         };

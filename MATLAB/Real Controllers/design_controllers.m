@@ -71,9 +71,8 @@ opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 
 % evaluate single loop controller
-% 45 deg step
 [info, bw] = evaluate_controller(name, single_loop_controller, ...
-    single_loop_plant, pi/4, 1000, "Position (rad)", "Voltage (V)");
+    single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
 
 % visualize controller
 % figure
@@ -119,12 +118,11 @@ outer_loop_plant = series(feedback(series(inner_loop_controller, ...
 % design controller
 % output torque < 0.5 N-m
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 4, opt);
+outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 7, opt);
 
 % evaluate outer loop controller
-% 45 deg step
 evaluate_controller(name, outer_loop_controller, ...
-    outer_loop_plant, pi/4, 10, "Position (rad)", "Torque (N-m)");
+    outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
 %% save double loop controller as .h file
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
@@ -195,7 +193,7 @@ function [info, bw] = evaluate_controller(name, controller, plant, ...
     % output response
     subplot(2, 2, 1)
     closed_loop = feedback(series(controller, plant), 1);
-    opt = stepDataOptions('StepAmplitude', stepAmp); % 45 deg rotation step
+    opt = stepDataOptions('StepAmplitude', stepAmp);
     h = stepplot(closed_loop, time, opt);
     hold on
     y = yline(stepAmp);
@@ -218,7 +216,7 @@ function [info, bw] = evaluate_controller(name, controller, plant, ...
     % output response
     subplot(2, 2, 2)
     closed_loop = feedback(series(controller, plant), 1);
-    opt = stepDataOptions('StepAmplitude', stepAmp); % 45 deg rotation step
+    opt = stepDataOptions('StepAmplitude', stepAmp);
     h = stepplot(closed_loop, opt);
     hold on
     y = yline(stepAmp);

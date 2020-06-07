@@ -22,5 +22,6 @@ function sos = controller2sos(controller, T)
 % discretizes the provided controller into second order sections
     dcontroller = c2d(controller, T);
     [num, den] = tfdata(dcontroller, 'v');
-    [sos, ~] = tf2sos(num, den);
+    [sos, g] = tf2sos(num, den);
+    sos = sos * g;
 end

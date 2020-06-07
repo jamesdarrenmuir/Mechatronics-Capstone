@@ -91,7 +91,7 @@ void *Timer_Irq_Thread(void *resource)
     uint32_t irqAssert = 0;
     #ifdef LOGGING
     MATFILE *mf;
-    int j, err, isave = 0;
+    int j, err, isave = 0, nsave;
     double P2Ref[ntot], P2Act[ntot], TMG[ntot], P1Act[ntot], TsRef[ntot], TsAct[ntot], t[ntot]; // time vector
     #endif /* LOGGING */
     MyRio_Aio CI0, CO0;
@@ -230,23 +230,25 @@ void *Timer_Irq_Thread(void *resource)
     Aio_Write(&CO0, 0.0); // stop motor
     printf("nsamp: %g\n",(double) nsamp); // debug print statement
     #ifdef LOGGING
+    nsave = (nsamp < ntot) ? x : y; // minimum
+    printf("nsave: %g\n",(double) nsave); // debug print statement
     //---Save Data to a .mat file in MKS units
     printf("Write MATLAB file\n");
     mf = openmatfile("SEA.mat", &err);
     if (!mf)
         printf("Can't open mat file error %d\n", err);
-    for (j = 0; j < nsamp; j++)
+    for (j = 0; j < nsave; j++)
         t[j] = (double)j * T;
-    err = matfile_addmatrix(mf, "time", t, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "time", t, nsave, 1, 0);
     err = matfile_addmatrix(mf, "controller_segments", (double *)mySegs, nseg, 4, 0);
 
     err = matfile_addstring(mf, "name", "SEA Team");
-    err = matfile_addmatrix(mf, "reference_position", P2Ref, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "actual_position", P2Act, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "motor_torque", TMG, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "reference_position", P2Ref, nsave, 1, 0);
+    err = matfile_addmatrix(mf, "actual_position", P2Act, nsave, 1, 0);
+    err = matfile_addmatrix(mf, "motor_torque", TMG, nsave, 1, 0);
+    err = matfile_addmatrix(mf, "motor_position", P1Act, nsave, 1, 0);
+    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsave, 1, 0);
+    err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsave, 1, 0);
     err = matfile_addmatrix(mf, "T", &T, 1, 1, 0);
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "slc", (double *)slc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller

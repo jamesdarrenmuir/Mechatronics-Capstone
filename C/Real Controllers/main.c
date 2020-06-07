@@ -37,7 +37,7 @@
 #endif /* DOUBLE_LOOP */
 
 #ifdef LOGGING
-#define ntot 4500 // number of data points to save
+#define ntot 3000 // number of data points to save
 #endif /* LOGGING */
 
 extern NiFpga_Session myrio_session;

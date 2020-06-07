@@ -14,8 +14,9 @@ Rg = 16; % gearbox ratio, 16:1 speed reduction
 % as seen by the motor
 Jg = 1.31e-7; % (kg-m^2) moment of inertia of the gearbox
 
-% shaft couplers
-Jsc = 8.6e-7; % (kg-m^2) moment of inertia of the shaft couplers
+% extra components
+Jp1x = 3.528e-6; % (kg-m^2) shaft couplers, etc.
+Jp2x = 1.398e-6; % (kg-m^2)
 
 % motor encoder
 BPRM = 500 * 4; % BDI Per Revolution Motor (BDI/rev)
@@ -27,13 +28,13 @@ BPRL = 2000 * 4; % BDI Per Revolution Load (BDI/rev)
 % pulleys
 % pulley 1 (closest to the motor)
 R1 = 2e-2; % (m) radius of the pulley closest to the motor
-Jp1 = 2.846e-6; % (kg-m^2) moment of inertia of the pulley 
+Jp1 = 2.871e-6; % (kg-m^2) moment of inertia of the pulley 
 % pulley 2 (furthest from the motor)
 R2 = R1; % (m) radius of the pulley furthest from the motor
 Jp2 = Jp1; % (kg-m^2) moment of inertia of the pulley
 
 % load
-JL = .00101; % (kg-m^2) moment of inertia of the load
+JL = .001981; % (kg-m^2) moment of inertia of the load
 
 % springs
 K1 = 578; % (N/m) spring constant of upper spring
@@ -51,8 +52,8 @@ T = 0.005; %(s)
 s = tf("s");
 K = K1 + K2;
 J1 = Jm + Jg;
-J2 = Jp2 + JL;
-J3 = Jp1 + Jsc;
+J2 = Jp2 + Jp2x + JL;
+J3 = Jp1 + Jp1x;
 % for controller header files
 Krot = K*R2^2;
 %% single loop controller
@@ -132,18 +133,24 @@ clamp = @(x, mn, mx) min(max(x,mn),mx); % x vector, minimum, maximum
 tmax = 8;
 ts = 0:T:tmax;
 period = 4; %(s)
-wave = clamp(.5*sawtooth(ts*2*pi/period, 0.5), -.2, .2);
+amp = .25;
+lim = .2;
+wave = square(2*pi/period/2*ts) .* (clamp(amp*sawtooth(ts*2*pi/period, 0.5), -lim/2, lim/2) + lim/2);
+ylims = [-.3 .3];
+figure('NumberTitle', 'off', 'Name', 'Reference Tracking Simulation');
 % inner loop
-figure('NumberTitle', 'off', 'Name', 'Inner Loop Controller');
+subplot(2, 1, 1)
 lsim(feedback(series(inner_loop_controller, inner_loop_plant),1), wave, ts)
+title('Inner Loop Controller')
 daspect([1 1 1])
-ylim([-.5 .5])
+ylim(ylims)
 ylabel('Torque (N-m)')
 % outer loop
-figure('NumberTitle', 'off', 'Name', 'Outer Loop Controller');
+subplot(2, 1, 2)
 lsim(feedback(series(outer_loop_controller, outer_loop_plant),1), wave, ts)
+title('Outer Loop Controller')
 daspect([1 1 1])
-ylim([-.5 .5])
+ylim(ylims)
 ylabel('Position (rad)')
 %% close all open files
 fclose('all');

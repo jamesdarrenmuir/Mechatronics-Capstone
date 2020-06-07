@@ -23,5 +23,5 @@ function sos = controller2sos(controller, T)
     dcontroller = c2d(controller, T);
     [num, den] = tfdata(dcontroller, 'v');
     [sos, g] = tf2sos(num, den);
-    sos(1:3) = sos(1:3) * g;
+    sos(1:3) = sos(1:3) * g; % scale numerator by gain
 end

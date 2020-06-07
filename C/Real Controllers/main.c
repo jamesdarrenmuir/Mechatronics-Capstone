@@ -102,9 +102,7 @@ void *Timer_Irq_Thread(void *resource)
     double *VDA_out_mV = &((threadResource->a_table + 2)->value); // mV
     double *P1_act = &((threadResource->a_table + 3)->value);
     double *Ts_act = &((threadResource->a_table + 4)->value);
-    #ifndef SINGLE_LOOP
     double *Ts_ref = &((threadResource->a_table + 5)->value);
-    #endif /* !SINGLE_LOOP */
 
     int iseg = -1, itime = -1, nsamp, done;
     seg *mySegs = threadResource->profile;
@@ -244,12 +242,12 @@ void *Timer_Irq_Thread(void *resource)
     err = matfile_addmatrix(mf, "actual_position", P2Act, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_torque", TMG, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "motor_position", P1Act, nsamp, 1, 0);
+    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
     #ifdef SINGLE_LOOP
     err = matfile_addmatrix(mf, "slc", (double *)slc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* SINGLE_LOOP */
     #ifndef SINGLE_LOOP
     err = matfile_addmatrix(mf, "reference_spring_torque", TsRef, nsamp, 1, 0);
-    err = matfile_addmatrix(mf, "actual_spring_torque", TsAct, nsamp, 1, 0);
     err = matfile_addmatrix(mf, "ilc", (double *)ilc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     err = matfile_addmatrix(mf, "olc", (double *)olc, 6, 1, 0); // TODO: make sure 6 is the right size for my controller
     #endif /* !SINGLE_LOOP */

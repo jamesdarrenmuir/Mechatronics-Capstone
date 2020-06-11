@@ -7,5 +7,5 @@
     uint32_t    timeoutValue = 5000;      // time interval - us; f_s = 200 Hz
     int         slc_ns = 1;              // number of sections
     static	struct	biquad slc[]={   // define the array of floating point biquads
-        {6.833623e-02, -6.824552e-02, 0.000000e+00, 1.000000e+00, -9.815128e-01, 0.000000e+00, 0, 0, 0, 0, 0}
+        {4.251809e-02, -8.501949e-02, 4.250141e-02, 1.000000e+00, -1.917858e+00, 9.178584e-01, 0, 0, 0, 0, 0}
         };

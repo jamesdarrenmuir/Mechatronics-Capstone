@@ -70,11 +70,11 @@ single_loop_plant = minreal(single_loop_plant);
 
 % design controller
 opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
-single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
+single_loop_controller = pidtune(single_loop_plant, "PIDF", .15, opt);
 
 % evaluate single loop controller
 [info, bw] = evaluate_controller(name, single_loop_controller, ...
-    single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
+    single_loop_plant, deg2rad(45), 500, "Position (rad)", "Voltage (V)");
 
 % visualize controller
 % figure

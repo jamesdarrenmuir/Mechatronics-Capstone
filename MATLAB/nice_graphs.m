@@ -2,7 +2,7 @@ clearvars; close all; clc;
 %% Inner Loop
 % inner loop reference tracking
 load("InnerLoop.mat")
-figure('NumberTitle', 'off', 'Name', "Inner Loop Reference Tracking");
+f = figure('NumberTitle', 'off', 'Name', "Inner Loop Reference Tracking");
 plot(time, reference_spring_torque, 'DisplayName', 'Reference Spring Torque');
 hold on
 plot(time, actual_spring_torque, 'DisplayName', 'Actual Spring Torque');
@@ -12,11 +12,12 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
+print_to_PDF(f, 'inner_loop_reference_tracking')
 %% Double Loop Disturbance
 % double loop disturbance rejection
 clearvars;
 load("DoubleLoopDisturbance.mat")
-figure('NumberTitle', 'off', 'Name', "Double Loop Disturbance Rejection");
+f = figure('NumberTitle', 'off', 'Name', "Double Loop Disturbance Rejection");
 n = 2; m = 1;
 % position
 subplot(n, m, 1);
@@ -40,11 +41,12 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
+print_to_PDF(f, 'double_loop_disturbance_rejection')
 %% Double Loop Reference
 % double loop reference tracking
 clearvars;
 load("DoubleLoopReference.mat")
-figure('NumberTitle', 'off', 'Name', "Double Loop Reference Tracking");
+f = figure('NumberTitle', 'off', 'Name', "Double Loop Reference Tracking");
 n = 2; m = 1;
 % position
 subplot(n, m, 1);
@@ -68,3 +70,12 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
+print_to_PDF(f, 'double_loop_reference_tracking')
+%% helper functions
+function print_to_PDF(fig, filename)
+    % credit to https://www.mathworks.com/matlabcentral/answers/12987-how-to-save-a-matlab-graphic-in-a-right-size-pdf
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,filename,'-dpdf','-r0')
+end

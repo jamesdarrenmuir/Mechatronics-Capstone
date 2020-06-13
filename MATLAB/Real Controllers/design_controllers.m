@@ -78,13 +78,17 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 [info, bw] = evaluate_controller(name, single_loop_controller, ...
     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
 
+% save step response
+save_step('single_loop_step_response', single_loop_controller, ...
+    single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
+
 % visualize controller
 % figure
 % rlocus(series(single_loop_controller, single_loop_plant))
 % hold on;
 % rlocus(series(single_loop_controller, single_loop_plant), 1)
 
-% save controller as .h file
+%% save single loop controller as .h file
 fileID = fopen('../../C/Real Controllers/single_loop_controller.h','w');
 ctrlrs2header(fileID, {single_loop_controller}, {'slc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
 %% double loop controllers
@@ -117,6 +121,10 @@ zc = 30;
 % .1 N-m reference step
 evaluate_controller(name, inner_loop_controller, ...
     inner_loop_plant, .1, .1, "Torque (N-m)", "Voltage (V)");
+
+% save step response
+save_step('inner_loop_step_response', inner_loop_controller, ...
+    inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
 %% outer loop controller
 name = 'Outer Loop';
 % set up plant
@@ -135,6 +143,10 @@ outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 10, opt);
 % evaluate outer loop controller
 evaluate_controller(name, outer_loop_controller, ...
     outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
+
+% save step response
+save_step('double_loop_step_response', outer_loop_controller, ...
+    outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
 %% save double loop controller as .h file
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
@@ -244,4 +256,33 @@ function [info, bw] = evaluate_controller(name, controller, plant, ...
     step(controller_effort_transfer_function, opt)
     title("Effort vs Time (Scaled Timescale)")
     ylabel(effortLabel)
+end
+
+function save_step(name, controller, plant, ...
+    stepAmp, time, outputLabel, effortLabel)
+    % plots graphs with information about a controller
+    f = figure('NumberTitle', 'off', 'Name', name);
+    
+    % Specified Equal Timescale Plots
+    % output response
+    subplot(2, 1, 1)
+    closed_loop = feedback(series(controller, plant), 1);
+    opt = stepDataOptions('StepAmplitude', stepAmp);
+    h = stepplot(closed_loop, time, opt);
+    hold on
+    y = yline(stepAmp);
+    legend(y, 'Target')
+    title("Output vs Time (Specified Equal Timescale)")
+    ylabel(outputLabel)
+    h.showCharacteristic('SettlingTime')
+    h.showCharacteristic('PeakResponse')
+
+    % effort response
+    subplot(2, 1, 2)
+    controller_effort_transfer_function = feedback(tf(controller), plant);
+    step(controller_effort_transfer_function, time, opt)
+    title("Effort vs Time (Specified Equal Timescale)")
+    ylabel(effortLabel)
+    
+    print_to_PDF(f, name)
 end

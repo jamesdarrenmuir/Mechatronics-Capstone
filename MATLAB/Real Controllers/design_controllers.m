@@ -105,7 +105,7 @@ zc = 30;
 % Ts = 0.05;
 % zc = 60;
 
-[~, ~, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
+[zc, pc, Kc, inner_loop_controller] = design_lead_compensator(zeta, Ts, ...
     zc, inner_loop_plant, name);
 % 
 % opt = pidtuneOptions("PhaseMargin", 80); % Default: 60 deg
@@ -163,7 +163,7 @@ ylabel('Position (rad)')
 %% close all open files
 fclose('all');
 %% functions
-function [pc, Kc, controller] = design_lead_compensator(zeta, Ts, zc, plant, name)
+function [zc, pc, Kc, controller] = design_lead_compensator(zeta, Ts, zc, plant, name)
     % this function designes a lead compensator for the given unity feedback system
     wn = 4 / (Ts * zeta); % (rad/s)
     tp = -zeta*wn + wn*sqrt(1-zeta^2)*1j; % target pole

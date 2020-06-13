@@ -79,8 +79,8 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
 
 % save step response
-save_step('single_loop_step_response', single_loop_controller, ...
-    single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
+% save_step('single_loop_step_response', single_loop_controller, ...
+%     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
 
 % visualize controller
 % figure
@@ -123,8 +123,8 @@ evaluate_controller(name, inner_loop_controller, ...
     inner_loop_plant, .1, .1, "Torque (N-m)", "Voltage (V)");
 
 % save step response
-save_step('inner_loop_step_response', inner_loop_controller, ...
-    inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
+% save_step('inner_loop_step_response', inner_loop_controller, ...
+%     inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
 %% outer loop controller
 name = 'Outer Loop';
 % set up plant
@@ -145,8 +145,8 @@ evaluate_controller(name, outer_loop_controller, ...
     outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
 
 % save step response
-save_step('double_loop_step_response', outer_loop_controller, ...
-    outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
+% save_step('double_loop_step_response', outer_loop_controller, ...
+%     outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
 %% save double loop controller as .h file
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
 ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
@@ -159,21 +159,26 @@ amp = .25;
 lim = .2;
 wave = square(2*pi/period/2*ts) .* (clamp(amp*sawtooth(ts*2*pi/period, 0.5), -lim/2, lim/2) + lim/2);
 ylims = [-.3 .3];
-figure('NumberTitle', 'off', 'Name', 'Reference Tracking Simulation');
 % inner loop
-subplot(2, 1, 1)
+f = figure('NumberTitle', 'off', 'Name', 'Inner Loop Reference Tracking Simulation');
+% subplot(2, 1, 1)
 lsim(feedback(series(inner_loop_controller, inner_loop_plant),1), wave, ts)
-title('Inner Loop Controller')
-daspect([1 1 1])
+title('Inner Loop Controller Torque Reference Tracking Simulation')
+% daspect([1 1 1])
 ylim(ylims)
 ylabel('Torque (N-m)')
+% save figure
+% print_to_PDF(f, 'inner_loop_reference_tracking_simulation')
 % outer loop
-subplot(2, 1, 2)
+f = figure('NumberTitle', 'off', 'Name', 'Inner Loop Reference Tracking Simulation');
+% subplot(2, 1, 2)
 lsim(feedback(series(outer_loop_controller, outer_loop_plant),1), wave, ts)
-title('Outer Loop Controller')
-daspect([1 1 1])
+title('Double Loop Controller Position Reference Tracking Simulation')
+% daspect([1 1 1])
 ylim(ylims)
 ylabel('Position (rad)')
+% save figure
+% print_to_PDF(f, 'double_loop_reference_tracking_simulation')
 %% close all open files
 fclose('all');
 %% functions

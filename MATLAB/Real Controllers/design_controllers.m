@@ -141,7 +141,7 @@ opt = pidtuneOptions("PhaseMargin", 60); % Default: 60 deg
 outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 10, opt);
 
 % evaluate outer loop controller
-evaluate_controller(name, outer_loop_controller, ...
+[overall_system_information, overall_bandwidth] = evaluate_controller(name, outer_loop_controller, ...
     outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
 
 % save step response

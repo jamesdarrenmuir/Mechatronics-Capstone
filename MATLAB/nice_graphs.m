@@ -2,6 +2,7 @@
 % produces nice figures based on collected data
 %% setup
 clearvars; close all; clc;
+addpath("data")
 %% Inner Loop
 % inner loop reference tracking
 load("InnerLoop.mat")
@@ -15,7 +16,7 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
-% print_to_PDF(f, 'inner_loop_reference_tracking')
+print_to_PDF(f, 'figures/inner_loop_reference_tracking')
 %% Double Loop Disturbance
 % double loop disturbance rejection
 clearvars;
@@ -44,7 +45,7 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
-% print_to_PDF(f, 'double_loop_disturbance_rejection')
+print_to_PDF(f, 'figures/double_loop_disturbance_rejection')
 %% Double Loop Reference
 % double loop reference tracking
 clearvars;
@@ -73,4 +74,4 @@ xlim([time(1) time(end)])
 xlabel("Time (s)")
 ylabel("Torque (N-m)")
 title("Time vs Torque")
-% print_to_PDF(f, 'double_loop_reference_tracking')
+print_to_PDF(f, 'figures/double_loop_reference_tracking')

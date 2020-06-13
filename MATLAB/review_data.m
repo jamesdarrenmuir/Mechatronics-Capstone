@@ -2,6 +2,7 @@
 % quick and dirty visualization of collected data
 %% setup
 clear all; close all; clc;
+addpath("data")
 load("SEA.mat")
 %% plot
 figure('NumberTitle', 'off', 'Name', "SEA Data");

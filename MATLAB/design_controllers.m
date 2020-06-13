@@ -79,8 +79,8 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
 
 % save step response
-% save_step('single_loop_step_response_simulation', single_loop_controller, ...
-%     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
+save_step('figures/single_loop_step_response_simulation', single_loop_controller, ...
+    single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
 
 % visualize controller
 % figure
@@ -89,7 +89,7 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
 % rlocus(series(single_loop_controller, single_loop_plant), 1)
 
 %% save single loop controller as .h file
-fileID = fopen('../../C/Real Controllers/single_loop_controller.h','w');
+fileID = fopen('../C/single_loop_controller.h','w');
 ctrlrs2header(fileID, {single_loop_controller}, {'slc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
 %% double loop controllers
 % the inner loop is nested inside the outer loop
@@ -123,8 +123,8 @@ evaluate_controller(name, inner_loop_controller, ...
     inner_loop_plant, .1, .1, "Torque (N-m)", "Voltage (V)");
 
 % save step response
-% save_step('inner_loop_step_response_simulation', inner_loop_controller, ...
-%     inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
+save_step('figures/inner_loop_step_response_simulation', inner_loop_controller, ...
+    inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
 %% outer loop controller
 name = 'Outer Loop';
 % set up plant
@@ -145,10 +145,10 @@ outer_loop_controller = pidtune(outer_loop_plant, "PIDF", 10, opt);
     outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
 
 % save step response
-% save_step('double_loop_step_response_simulation', outer_loop_controller, ...
-%     outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
+save_step('figures/double_loop_step_response_simulation', outer_loop_controller, ...
+    outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
 %% save double loop controller as .h file
-fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');
+fileID = fopen('../C/double_loop_controller.h','w');
 ctrlrs2header(fileID, {inner_loop_controller, outer_loop_controller}, {'ilc', 'olc'}, T, Krot, Kvi, Kt, BPRM, BPRL, Rg)
 %% more evaluation of double loop controller
 clamp = @(x, mn, mx) min(max(x,mn),mx); % x vector, minimum, maximum

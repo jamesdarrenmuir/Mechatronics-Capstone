@@ -79,7 +79,7 @@ single_loop_controller = pidtune(single_loop_plant, "PDF", 1, opt);
     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)");
 
 % save step response
-% save_step('single_loop_step_response', single_loop_controller, ...
+% save_step('single_loop_step_response_simulation', single_loop_controller, ...
 %     single_loop_plant, deg2rad(45), 1000, "Position (rad)", "Voltage (V)")
 
 % visualize controller
@@ -123,7 +123,7 @@ evaluate_controller(name, inner_loop_controller, ...
     inner_loop_plant, .1, .1, "Torque (N-m)", "Voltage (V)");
 
 % save step response
-% save_step('inner_loop_step_response', inner_loop_controller, ...
+% save_step('inner_loop_step_response_simulation', inner_loop_controller, ...
 %     inner_loop_plant, .1, .2, "Torque (N-m)", "Voltage (V)")
 %% outer loop controller
 name = 'Outer Loop';
@@ -145,7 +145,7 @@ evaluate_controller(name, outer_loop_controller, ...
     outer_loop_plant, deg2rad(45), 10, "Position (rad)", "Torque (N-m)");
 
 % save step response
-% save_step('double_loop_step_response', outer_loop_controller, ...
+% save_step('double_loop_step_response_simulation', outer_loop_controller, ...
 %     outer_loop_plant, deg2rad(45), 2, "Position (rad)", "Torque (N-m)")
 %% save double loop controller as .h file
 fileID = fopen('../../C/Real Controllers/double_loop_controller.h','w');

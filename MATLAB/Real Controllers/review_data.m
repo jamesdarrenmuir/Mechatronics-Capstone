@@ -1,3 +1,5 @@
+%% purpose
+% quick and dirty visualization of collected data
 %% setup
 clear all; close all; clc;
 load("SEA.mat")

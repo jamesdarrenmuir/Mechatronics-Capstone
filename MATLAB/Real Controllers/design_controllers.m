@@ -1,3 +1,5 @@
+%% purpose
+% designs and evaluates controllers for our SEA device
 %% setup
 clear all; close all; clc;
 %% mechanical system parameters

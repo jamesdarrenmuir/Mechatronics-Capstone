@@ -1,3 +1,6 @@
+%% purpose
+% produces nice figures based on collected data
+%% setup
 clearvars; close all; clc;
 %% Inner Loop
 % inner loop reference tracking
